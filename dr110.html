@@ -1,0 +1,63 @@
+<rhtml>
+<head>
+<style type="text/css" src="dr110.css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
+<script src="dr110.js" type="text/javascript"></script>
+</head>
+<body>
+	<div id="device">
+	<div id="displays">
+		Bank: <div id="bank"></div>
+		Song: <div id="song"></div>
+		Mode:<div id="mode"></div>
+		Rhythm<div id="pattern"></div>
+		<div id="cHihatDisplay"></div>
+		<div id="oHihatDisplay"></div>
+		<div id="snareDisplay"></div>
+		<div id="bassDisplay"></div>
+		<div id="patternLength"></div>
+	</div>
+	<div id="knobs">
+		<div id="knob" style="z-index:5;"></div>	
+		<img id="knob-img" src="knob.png" style="z-index: 1;"/>
+		<img id="knob2" src="knob.png" style="z-index: 1;"/>
+		<img id="knob3" src="knob.png" style="z-index: 1;"/>
+		<img id="knob4" src="knob.png" style="z-index: 1;"/>
+	</div>
+	<br style="clear: both;" />
+		<div id="functions">
+			<button id="butShift">SHIFT</button>
+			<button id="butABCD">+</button>
+			<button id="but1">1</button>
+			<button id="but2">2</button>
+			<button id="but3">3</button>
+			<button id="but4">4</button>
+			<button id="but5">5</button>
+			<button id="but6">6</button>
+			<button id="but7">7</button>
+			<button id="but8">8</button>
+			<button id="butStart"><strong>&bull;</strong><br>START</button>
+			<button id="butStop">o<br>STOP</button>
+		</div>
+		<div id="instruments">
+			<button id="butAccent">Accent</button>
+			<button id="butBassDrum">Bass Drum</button>
+			<button id="butSnareDrum">Snare Drum</button>
+			<button id="butOhihat">O. Hihat</button>
+			<button id="butChihat">C. Hihat</button>
+			<button id="butCymbal">Cymbal</button>
+			<button id="butHandclap">Hand Clap</button>
+		</div>
+	</div>
+	<p>Tempo:<span id="tempo"></span><p>
+	<p>Mouseclick?:<span id="clicking"></span></p>
+	<div id="sounds">
+		<audio id="bassDrum" title="bassDrum" autobuffer><source src="DR110KIK.wav" type="audio/x-wav"><source src="DR110KIK.ogg" type="application/ogg"><source src="DR110KIK.mp3" type="audio/mpeg"></audio>
+		<audio id="snareDrum" title="snareDrum" autobuffer><source src="DR110SNR.wav" type="audio/x-wav"><source src="DR110SNR.ogg" type="application/ogg"><source src="DR110SNR.mp3" type="audio/mpeg"></audio>
+		<audio id="closedHihat" title="closedHihat" autobuffer><source src="DR110CHT.wav" type="audio/x-wav"><source src="DR110CHT.ogg" type="application/ogg"><source src="DR110CHT.mp3" type="audio/mpeg"></audio>
+		<audio id="openHihat" title="openHihat" autobuffer><source src="DR110OHT.wav" type="audio/x-wav"><source src="DR110OHT.ogg" type="application/ogg"><source src="DR110OHT.mp3" type="audio/mpeg"></audio>
+		<audio id="handClap" title="handClap" autobuffer><source src="DR110CLP.wav" type="audio/x-wav"><source src="DR110CLP.ogg" type="application/ogg"><source src="DR110CLP.mp3" type="audio/mpeg"></audio>
+		<audio id="cymbal" title="handClap" autobuffer><source src="DR110CYM.wav" type="audio/x-wav"><source src="DR110CYM.ogg" type="application/ogg"><source src="DR110CYM.mp3" type="audio/mpeg"></audio>
+	</div>
+	</body>
+</html>

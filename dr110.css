@@ -1,0 +1,293 @@
+@font-face {
+	font-family: LCD;
+	src: url('digital-7.ttf');
+}
+
+#container{
+text-align: center;
+
+}
+#device{
+	margin-left: auto; 
+	margin-right: auto;
+	text-align: left;
+	border: 3px solid #444;
+	position: relative;
+	top: 25px;
+	background-color: #CCC;
+	border-radius: 1em;
+	-webkit-border-radius: 1em;
+	width: 900px;
+	height: 515px;
+	overflow: auto;
+	background-image:url('./images/900px.jpg');
+	margin-bottom: 50px;
+}
+
+#knobs{
+	margin-top: 135px;
+	width:400px;
+	float:right;
+	text-align: right;
+}
+
+#accentControl, #tempoControl, #volumeControl{
+	width: 60px;
+	height: 60px;
+	z-index: 5;
+	position: absolute;
+}
+
+#tempoControl{
+	
+	left: 530px;
+	top: 135px;
+}
+
+#volumeControl{
+	left: 813px;
+	top: 135px;	
+}
+
+#accentControl{
+	left: 718px;
+	top: 135px;	
+}
+
+#knobTempo,#knobBalance,#knobAccent,#knobVolume{
+	margin-right: 38px;
+	-moz-transform: rotate(180deg);
+}
+
+#knobAccent{
+	-moz-transform: rotate(30deg);
+}
+
+#knobVolume{
+	-moz-transform: rotate(320deg);
+	margin-right: 30px;
+}
+
+#knobTempo{
+	margin-top: 5px;
+	-moz-transform: rotate(33deg);
+}
+
+.engaged{
+	background-color:#2d76a1;
+	color:#EEE;
+}
+
+button{
+	background-color:#3487b8;
+	color:#FFF;
+	margin-right: 19px;
+	padding: 10px 5px 10px 5px;
+	border: 3px solid #2d76a1;
+	border-radius: 8px;
+	-webkit-border-radius: 8px;
+	margin-bottom: 10px;
+	outline:none;
+}
+button:active{
+	background-color:#2d76a1;
+	outline:none;
+}
+button:focus{
+	outline:none;
+}
+button::-moz-focus-inner { border: 0; }
+
+#instruments{
+	padding-top: 30px;
+}
+
+#instruments button{
+	width: 85px;
+	height: 55px;
+	display: block;
+	float: left;
+	margin-right: 37px;
+}
+
+#functions, #instruments{
+	padding-left: 40px;
+}
+
+#butStart{
+	margin-left: 10px;
+}
+
+#butStart, #butStop{
+	width: 80px;
+	height: 75px;
+	font-weight: bold;
+	font-size: 16px;
+}
+#butShift{
+	width: 70px;
+	height: 55px;
+	margin-right: 30px;
+	font-weight: bold;
+}
+
+#but1, #but2, #but3, #but4, #but5, #but6, #but7, #but8, #butABCD{
+	font-family: LCD;
+	font-size: 28px;
+	width: 35px;
+}
+
+#butABCD{
+text-indent: -40000px;
+background-position: 5px 11px;
+background-image:url('./images/abcd.png');
+background-repeat: no-repeat;
+background-position: 
+}
+
+#butAccent, #butBassDrum, #butSnareDrum, #butOhihat, #butChihat, #butCymbal, #butHandClap{
+	background-image:url('./images/buttonsprites.png');
+	background-repeat: no-repeat;
+	background-position: 0px 9px;
+	color:RGBa(0,0,0,0);
+}
+
+#butAccent{
+background-position: 0px 7px;
+}
+#butBassDrum{
+background-position: -98px;
+}
+#butSnareDrum{
+background-position: -199px;
+}
+#butOhihat{
+background-position: -299px;
+}
+#butChihat{
+background-position: -400px;
+}
+#butCymbal{
+background-position: -501px;
+}
+#butHandClap{
+background-position: -604px 5px;
+}
+
+#functions{
+	padding-top: 120px;
+}
+
+/*	Sequences will be replaced by graphics of some sort	*/
+#sequencer{
+	position:absolute;
+	top: 87px;
+	left: 131px;
+	margin: 0;
+	padding: 0;
+}
+
+#sequencer div {
+	height: 16px;
+}
+#pattern{
+	font-family: LCD;
+	position: absolute;
+	top: 182px;
+	left: 231px;
+	font-size: 50px;
+}
+#mode{
+	position: absolute;
+	left: 300px;
+	text-transform: uppercase;
+	font-size: 9px;
+	font-family: arial, helvetica, sans-serif;
+}
+
+/* Bank A,B,C,D */
+.pos1{
+	top: 185px;
+}
+.pos2{
+	top: 197px;
+}
+.pos3{
+	top: 209px;
+}
+.pos4{
+	top: 222px;
+}
+
+.posA1{
+	top: 176px;
+}
+.posA2{
+	top: 190px;
+}
+.posA3{
+	top: 202px;
+}
+.posA4{
+	top: 218px;
+}
+.posA5{
+	top: 229px;
+}
+
+#song{
+	position: absolute;
+	left: 78px;
+}
+.song1{
+	top: 185px;
+}
+.song2{
+	top: 215px;
+}
+#bank{
+	position: absolute;
+	left: 210px;
+	text-transform: uppercase;
+	font-size: 10px;
+	font-family: arial, helvetica, sans-serif;
+}
+
+#patternLength{
+	position: absolute;
+	left: 360px;
+	top: 60px;
+	font-size: 8px;
+	font-family: arial, helvetica, sans-serif;
+}
+
+#labels{
+	font-family: Arial, helvetica, sans-serif;
+	font-size: 8px;
+	z-index:3;
+	position: absolute;
+	left: 73px;
+	top:90px;
+	line-height: 15px;
+	}
+#lowerLabels{
+	font-family: Arial, helvetica, sans-serif;
+	font-size: 7px;
+	z-index:3;
+	position: absolute;
+	left: 70px;
+	top:173px;	
+}
+#labelMeasure{
+	margin-left:30px;
+	margin-right:45px;
+}
+#labelBank{
+	margin-right: 3px;
+}
+#labelRhythm{
+	margin-right:12px;
+}
+#exportBox{
+	width: 80%;
+}

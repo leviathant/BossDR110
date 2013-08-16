@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="PUBLIC">
+<link rel="stylesheet" type="text/css" media="all" href="dr110.css" />
+<title>Emulating a Boss DR-110</title>
+<!---
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js" type="text/javascript"></script>--->
+<script src="jquery.js" type="text/javascript"></script>
+<!-- <script src="jquery.cookie.js" type="text/javascript"></script> -->
+<script src="dr110.js" type="text/javascript"></script>
+<script type="text/javascript">
+			var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+			document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+			var pageTracker = _gat._getTracker("UA-763021-3");
+			pageTracker._trackPageview();
+		</script>
+
+</head>
+<body>
+	<div id="container">
+	<p>Tempo:<span id="tempo"> 120bpm</span>, Volume:<span id="volume">80</span>, Accent:<span id="accent">20</span> - <a href="http://www.theninhotline.net/dr110">Programming Instructions</a> - <a href="#notes">Notes</a></p>
+		<div id="device">
+			<div id="labels">
+				C. HIHAT<br />
+				O. HIHAT<br />
+				SNARE DRUM<br />
+				BASS DRUM<br />
+				<span id="splitDisplay">AC/&nbsp;&nbsp;/</span>
+			</div>
+			<div id="lowerLabels">
+				SONG 
+				<span id="labelMeasure">MEASURE</span>
+				<span id="labelBank">BANK</span>
+				<span id="labelRhythm">RHYTHM</span>
+				<span id="labelMode">MODE</span>
+			</div>
+			<div id="sequencer">
+				<div id="sequClosedHihat"></div>
+				<div id="sequOpenHihat"></div>
+				<div id="sequSnareDrum"></div>
+				<div id="sequBassDrum"></div>
+				<div id="sequAccent"></div>
+			</div>
+			<div id="knobs">
+				<img id="knobTempo" src="./images/knob.png" style="z-index: 1;"/>
+				<img id="knobBalance" src="./images/knob.png" style="z-index: 1;"/>
+				<img id="knobAccent" src="./images/knob.png" style="z-index: 1;"/>
+				<img id="knobVolume" src="./images/knob.png" style="z-index: 1;"/>
+				<div id="tempoControl"></div>	
+				<div id="volumeControl"></div>	
+				<div id="accentControl"></div>	
+			</div>
+			<div id="bank" class="pos1"></div>
+			<div id="song" class="song1"></div>
+			<div id="mode" class="posA3"></div>
+			<div id="patternLength">V</div>
+			<div id="pattern"></div>
+			<br style="clear: both;" />
+			<div id="functions">
+				<button id="butShift" title="Press Shift">SHIFT</button>
+				<button id="butABCD" title="Press ` (next to 1)">A/B/C/D</button>
+				<button id="but1" title="Press 1">1</button>
+				<button id="but2" title="Press 2">2</button>
+				<button id="but3" title="Press 3">3</button>
+				<button id="but4" title="Press 4">4</button>
+				<button id="but5" title="Press 5">5</button>
+				<button id="but6" title="Press 6">6</button>
+				<button id="but7" title="Press 7">7</button>
+				<button id="but8" title="Press 8">8</button>
+				<button id="butStart" title="Press 9"><strong>●</strong><br>START</button>
+				<button id="butStop" title="Press 0">o<br>STOP</button>
+			</div>
+			<div id="instruments">
+				<button id="butAccent" title="Press Z">Accent</button>
+				<button id="butBassDrum" title="Press X">Bass Drum</button>
+				<button id="butSnareDrum" title="Press C">Snare Drum</button>
+				<button id="butOhihat" title="Press V">O. Hihat</button>
+				<button id="butChihat" title="Press B">C. Hihat</button>
+				<button id="butCymbal" title="Press N">Cymbal</button>
+				<button id="butHandClap" title="Press M">Hand Clap</button>
+			</div>
+		</div>
+	
+	</div>
+	<br style="clear: Both;" />
+	<div style="text-align: center;">
+	<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/us/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Boss DR-110 Simulator</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://www.bitrotten.com/" property="cc:attributionName" rel="cc:attributionURL">Matt Dunphy</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/us/">Creative Commons Attribution-ShareAlike 3.0 United States License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="http://www.bitrotten.com/dr110" rel="dct:source">www.bitrotten.com</a>.</div>
+	</body>
+</html>
