@@ -68,10 +68,8 @@ staticTempoBeat = function(){
 				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
 			}
 			else{
-
 				playFile(instruments[q],(active_sequence[step]==1));
 			}
-
 		}
 	}
 };
@@ -97,7 +95,7 @@ instruments = {
 
 
 initialize = function(){
-	$('#bank').html(String.fromCharCode(64+bank));
+	$('#bank').html(String.fromCharCode(65+bank));
 	$('#mode').html(mode[selectedMode]);
 	$('#song').html((song==1)?"I":"II");
 	$('#pattern').html(pattern);
@@ -125,16 +123,16 @@ writeDot = function(thisInstrument,thisStep,override){
 
 updateSequenceDisplay = function(){
 	var seqHTML = "";
-	for(i=0;i<7;i++){
-		if(i > 0 && i < 5){
-			$("#sequ" + instruments[i]).html("");
-			for(j=1;j<17;j++){
-				writeDot(i,j,false);
+	for(_inst=0;_inst<7;_inst++){
+		if(_inst > 0 && _inst < 5){
+			$("#sequ" + instruments[_inst]).html("");
+			for(_step=1;_step<17;_step++){
+				writeDot(_inst,_step,false);
 			}
 		}
 		else{ //Shared pattern display
-			if(i == sharedDisplayInstrument){
-				switch(i){
+			if(_inst == sharedDisplayInstrument){
+				switch(_inst){
 					case 5:
 						$("#splitDisplay").html("&nbsp;&nbsp;&nbsp;/CY/");	//hackity...
 					break;
@@ -146,8 +144,8 @@ updateSequenceDisplay = function(){
 					break;
 				}
 				$("#sequ" + instruments[0]).html("");
-				for(j=1;j<17;j++){
-					writeDot(0,j,(sharedDisplayInstrument==selectedInstrument)?selectedInstrument:sharedDisplayInstrument);
+				for(_step=1;_step<17;_step++){
+					writeDot(0,_step,(sharedDisplayInstrument==selectedInstrument)?selectedInstrument:sharedDisplayInstrument);
 				}
 			}
 		}
@@ -160,8 +158,12 @@ handle_keydown = function(e){
 	if (e.shiftKey==1){
         $("#butShift").trigger('click');
     }
-	if (e.keyCode) code = e.keyCode;
-	else if (e.which) code = e.which;
+	if (e.keyCode) {
+		code = e.keyCode;
+	}
+	else if (e.which){
+		code = e.which;
+	}
 	if(code == 192){
 		$("#butABCD").trigger('click');
 	}
@@ -362,25 +364,25 @@ $(document).ready(function(){
 	//Initialize instrument sequences
 	for(circuit=0;circuit<=circuits.length;circuit++){
 		numberButton(circuit+1);
-		active_sequence[circuits[circuit]] = {}
-		for(step=1;step<=maxSteps;step++){
-			active_sequence[circuits[circuit]][step] = 0;
+		active_sequence[circuits[circuit]] = {};
+		for(_step=1;_step<=maxSteps;_step++){
+			active_sequence[circuits[circuit]][_step] = 0;
 		}
 	}
 
 	active_sequence.pattern_length = maxSteps;
 
 	//Initialize banks with empty sequences. TODO: Load with original Boss factory presets instead. Heh.
-	for(bank=0;bank<banks.length;bank++){
-		sequences[banks[bank]] = {};
-		for(pattern=1;pattern<=patterns;pattern++){
-			sequences[banks[bank]][pattern] = {};
+	for(_bank=0;_bank<banks.length;_bank++){
+		sequences[banks[_bank]] = {};
+		for(_pattern=1;_pattern<=patterns;_pattern++){
+			sequences[banks[_bank]][_pattern] = {};
 			for(circuit=0;circuit<circuits.length;circuit++){
-				sequences[banks[bank]][pattern][circuits[circuit]] = {};
+				sequences[banks[_bank]][_pattern][circuits[circuit]] = {};
 				for(step=1;step<=16;step++){
-					sequences[banks[bank]][pattern][circuits[circuit]][step] = 0;
+					sequences[banks[_bank]][_pattern][circuits[circuit]][step] = 0;
 				}
-				sequences[banks[bank]][pattern]["pattern_length"] = maxSteps;
+				sequences[banks[_bank]][_pattern]["pattern_length"] = maxSteps;
 			}
 		}
 	}
@@ -392,8 +394,8 @@ $(document).ready(function(){
 		$('#but7').bind('click', function(event) {
 			if(shiftEngaged){	//Clear pattern
 				for(circuit=1;circuit<7;circuit++){
-					for(step=1;step<=maxSteps;step++){
-						active_sequence[circuits[circuit]][step] = 0;
+					for(_step=1;_step<=maxSteps;_step++){
+						active_sequence[circuits[circuit]][_step] = 0;
 					}
 				}
 				active_sequence.pattern_length = maxSteps;
@@ -431,7 +433,7 @@ $(document).ready(function(){
 				$('#song').addClass('song' + song);
 			}
 			else{
-				$('#bank').removeClass('pos' + bank);
+				$('#bank').removeClass('pos' + (bank+1));
 				sequences[banks[bank][pattern]] = active_sequence;
 				bank++;
 				if(bank > 3){bank=0;}
@@ -477,7 +479,7 @@ $(document).ready(function(){
 					// I forget
 					break;
 				case 4:
-					active_sequence[selectedInstrument][step] = 0;
+					active_sequence[circuits[selectedInstrument]][step] = 0;
 					nextStep();
 					initialize();
 					break;
