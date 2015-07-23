@@ -1,27 +1,44 @@
-// Boss DR-110 Emulation code -- contact leviathant@gmail.com for more info.
+// Boss DR-110 Emulation code
+// Contact leviathant@gmail.com or visit http://github.com/leviathant/dr110 for more info.
+
 //Todo: Accent & Balance
 var clicking = false;
-var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-var songs=new Array(2); // Consider going JSON?
-var Banks=new Array(2);
-var Sequences=new Array(7);
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1; //Todo: Check features, not browsers.
+
+var songs = {};
+var sequences = {};
+var active_sequence = {};
+
+var banks = ["A","B","C","D"];
+var circuits = ["AC","BD","SD","OH","CH","CY","HC"];
+var patterns = 8;
+
 var shiftEngaged = false;
-var tempo=120;
+var tempo = 120;
 var maxTempo = 320;
 var knobMin = 12;
 var knobMax = 88;
-var volume=0.8; /* 0-1 */
-var accent=0.2; /* 0-1 */
+
+var volume = 0.8; /* 0-1 */
+var accent = 0.2; /* 0-1 */
 var rate = 15000/tempo;
-var selectedInstrument = 1;
-var bank = 1;
-var measure = 1;
-var step = 1; // Theoretically goes up to 16
+
+var selected_instrument = 1;
+
+var bank = 0;
+var active_measure = 1;
+
+var step = 1;
+var maxSteps = 16;
+
 var song = 1;
-var patternLength = 16;
-var pattern = 1;
-var selectedMode = 4;
-var hihatAudio = new Audio(); // Global hihat audio for supporting open/closed hihat cutoff
+
+var active_pattern = 1;
+var pattern_length = 16;
+
+var selected_mode = 4;
+
+var hihat_audio = new Audio(); // Global hihat audio for supporting open/closed hihat cutoff
 var DR110HEART = "";
 var sharedDisplayInstrument = 0;
 
@@ -33,33 +50,31 @@ startBeat = function(){
 	clearInterval(DR110HEART);
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
-	step = 1;
+	resetStep();
 	rate = 15000/tempo;
-	DR110HEART=setInterval("staticTempoBeat()",rate);
+	DR110HEART = setInterval("staticTempoBeat()",rate);
 };
 
 stopBeat = function(){
 	clearInterval(DR110HEART);
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
-	step = 1;
+	resetStep();
 };
 
 staticTempoBeat = function(){
 	nextStep();
-	for(q=1;q<7;q++){
-		if(Sequences[q][step] == 1){
-			if((q == 3) && (Sequences[4][step] == 1)){
+	for(circuit = 0; circuit <= 6; circuit++){
+		if(active_sequence[circuits[circuit]][step] == 1){
+			if((circuits[circuit] == "OH") && (active_sequence["CH"][step] == 1)){
 				// Don't play the open hihat if it lands on the same beat as a closed hihat.
 			}
-			else if((q == 4) && (Sequences[3][step] == 1)){
-				playFile(instruments[7],(Sequences[0][step]==1)); // Play the pedal hat
+			else if((circuits[circuit] == "CH") && (active_sequence["OH"][step] == 1)){
+				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
 			}
 			else{
-
-				playFile(instruments[q],(Sequences[0][step]==1));
+				playFile(instruments[circuit],(active_sequence[step]==1));
 			}
-
 		}
 	}
 };
@@ -83,21 +98,22 @@ instruments = {
 	7:'PedalHat' //Only occurs when open and closed hats are triggered simultaneously
 };
 
+
 initialize = function(){
-	$('#bank').html(String.fromCharCode(64+bank));
-	$('#mode').html(mode[selectedMode]);
-	$('#song').html((song==1)?"I":"II");
-	$('#pattern').html(pattern);
+	$('#bank').html(String.fromCharCode(65+bank));
+	$('#mode').html(mode[selected_mode]);
+	$('#song').html((song == 1) ? "I" : "II");
+	$('#pattern').html(active_pattern);
 	updateSequenceDisplay();
 };
 
 writeDot = function(thisInstrument,thisStep,override){
-	if(((thisInstrument == selectedInstrument) || (thisInstrument === 0 && selectedInstrument == override))&& thisStep == step){
+	if(((thisInstrument == selected_instrument) || (thisInstrument === 0 && selected_instrument == override))&& thisStep == step){
 		$("#sequ" + instruments[thisInstrument]).append("<img src=\"./images/dot_blink.png\" class=\"step" + thisStep + "\">");
 	}
 	else{
 		try{
-			if(Sequences[(override)?override:thisInstrument][thisStep] === 0){
+			if(active_sequence[circuits[(override) ? override : thisInstrument]][thisStep] === 0){
 				$("#sequ" + instruments[thisInstrument]).append("<img src=\"./images/dot_off.png\" class=\"step" + thisStep + "\">");
 			}
 			else{
@@ -112,16 +128,16 @@ writeDot = function(thisInstrument,thisStep,override){
 
 updateSequenceDisplay = function(){
 	var seqHTML = "";
-	for(i=0;i<7;i++){
-		if(i > 0 && i < 5){
-			$("#sequ" + instruments[i]).html("");
-			for(j=1;j<17;j++){
-				writeDot(i,j,false);
+	for(displayInstrument = 0; displayInstrument < circuits.length; displayInstrument++){
+		if(displayInstrument > 0 && displayInstrument < 5){
+			$("#sequ" + instruments[displayInstrument]).html("");
+			for(_step = 1; _step <= maxSteps; _step++){
+				writeDot(displayInstrument,_step,false);
 			}
 		}
 		else{ //Shared pattern display
-			if(i == sharedDisplayInstrument){
-				switch(i){
+			if(displayInstrument == sharedDisplayInstrument){
+				switch(displayInstrument){
 					case 5:
 						$("#splitDisplay").html("&nbsp;&nbsp;&nbsp;/CY/");	//hackity...
 					break;
@@ -133,8 +149,8 @@ updateSequenceDisplay = function(){
 					break;
 				}
 				$("#sequ" + instruments[0]).html("");
-				for(j=1;j<17;j++){
-					writeDot(0,j,(sharedDisplayInstrument==selectedInstrument)?selectedInstrument:sharedDisplayInstrument);
+				for(_step = 1; _step < 17; _step++){
+					writeDot(0,_step,(sharedDisplayInstrument == selected_instrument) ? selected_instrument : sharedDisplayInstrument);
 				}
 			}
 		}
@@ -144,11 +160,15 @@ updateSequenceDisplay = function(){
 handle_keydown = function(e){
 	var code;
 	if (!e) e = window.event;
-	if (e.shiftKey==1){
+	if (e.shiftKey == 1){
         $("#butShift").trigger('click');
     }
-	if (e.keyCode) code = e.keyCode;
-	else if (e.which) code = e.which;
+	if (e.keyCode) {
+		code = e.keyCode;
+	}
+	else if (e.which){
+		code = e.which;
+	}
 	if(code == 192){
 		$("#butABCD").trigger('click');
 	}
@@ -210,17 +230,17 @@ handle_keydown = function(e){
 };
 
 playFile = function(filename,withAccent){
-	if(filename==instruments[3] || filename==instruments[4] || filename==instruments[7]){ // Handle hihats as best as I can
-		hihatAudio.pause();
-		hihatAudio = new Audio();
+	if(filename == instruments[3] || filename == instruments[4] || filename == instruments[7]){ // Handle hihats as best as I can
+		hihat_audio.pause();
+		hihat_audio = new Audio();
 		if(is_chrome){
-			hihatAudio.src = './audio/' + filename + '.mp3';
+			hihat_audio.src = './audio/' + filename + '.mp3';
 		}
 		else{
-			hihatAudio.src = './audio/' + filename + '.wav';
+			hihat_audio.src = './audio/' + filename + '.wav';
 		}
-		hihatAudio.volume=(withAccent)?volume+accent:volume;
-		hihatAudio.play();
+		hihat_audio.volume = (withAccent) ? volume+accent : volume;
+		hihat_audio.play();
 	}
 	else{
 		var audio = new Audio();
@@ -230,30 +250,30 @@ playFile = function(filename,withAccent){
 		else{
 			audio.src = './audio/' +  filename + '.wav';
 		}
-		audio.volume=(withAccent)?volume+accent:volume;
+		audio.volume = (withAccent) ? volume+accent : volume;
 		audio.play();
 	}
 };
 
 numberButton = function(number){
-	if(number==6){
+	if(number == 6){
 		$('#but' + number).bind('click', function(event) {
 			if(shiftEngaged){
-				patternLength=(patternLength==16)?12:16;
-				if(patternLength==16){
-					$("#patternLength").css('left','360px');
+				pattern_length = (pattern_length == 16) ? 12 : 16;
+				if(pattern_length == 16){
+					$("#pattern_length").css('left','360px');
 				}
 				else{
-					$("#patternLength").css('left','300px');
+					$("#pattern_length").css('left','300px');
 				}
 
-				Sequences[7] = patternLength;
+				active_sequence.pattern_length = pattern_length;
 			}
 			else{
-				Banks[bank][pattern] = Sequences;
-				pattern = number;
-				Sequences = Banks[bank][pattern];
-				patternLength = Sequences[7];
+				sequences[banks[bank]][active_pattern] = active_sequence;
+				active_pattern = number;
+				active_sequence = sequences[banks[bank]][active_pattern];
+				pattern_length = active_sequence.pattern_length;
 				step = 1;
 			}
 			initialize();
@@ -262,15 +282,17 @@ numberButton = function(number){
 	else{
 		$('#but' + number).bind('click', function(event) {
 			if(shiftEngaged){
-				$('#mode').removeClass();
-				$('#mode').addClass('posA' + number);
-				selectedMode = number;
+				if(number < 6){
+					$('#mode').removeClass();
+					$('#mode').addClass('posA' + number);
+					selected_mode = number;
+				}
 			}
 			else{
-				Banks[bank][pattern] = Sequences;
-				pattern = number;
-				Sequences = Banks[bank][pattern];
-				patternLength = Sequences[7];
+				sequences[banks[bank]][active_pattern] = active_sequence;
+				active_pattern = number;
+				active_sequence = sequences[banks[bank]][active_pattern];
+				pattern_length = active_sequence.pattern_length;
 				step = 1;
 			}
 			initialize();
@@ -280,8 +302,8 @@ numberButton = function(number){
 
 nextStep = function(){
 	step++;
-	if(step>patternLength){
-		step = 1;
+	if(step>pattern_length){
+		step = 1; //TODO: Double-check.
 	}
 };
 
@@ -326,9 +348,18 @@ volumeFunction = function(pct){
 };
 
 accentFunction = function(pct){
-	accent = .22-(pct/100) * 0.22;
+	accent = 0.22-(pct/100) * 0.22;
 	$("#accent").text(Math.round(accent * 100));
 };
+
+resetStep = function(){
+	step = 1;
+};
+
+resetSequence = function(){
+	active_sequence[circuits[selected_instrument]][step] = 1;
+};
+
 
 $(document).ready(function(){
 	document.onkeydown = handle_keydown;
@@ -347,28 +378,30 @@ $(document).ready(function(){
 	assignKnob("accent","accentFunction");
 
 	//Initialize instrument sequences
-	for(i=0;i<7;i++){
-		numberButton(i);
-		Sequences[i] = new Array(16);
-		for(j=1;j<17;j++){
-			Sequences[i][j] = 0;
+	for(circuit = 0; circuit <= circuits.length; circuit++){
+		numberButton(circuit + 1);
+		active_sequence[circuits[circuit]] = {};
+
+		for(_step = 1; _step <= maxSteps; _step++){
+			active_sequence[circuits[circuit]][_step] = 0;
 		}
 	}
-	Sequences[7] = 16;
+
+	active_sequence.pattern_length = maxSteps;
 
 	//Initialize banks with empty sequences. TODO: Load with original Boss factory presets instead. Heh.
-	for(i=1;i<5;i++){								//Bank
-		Banks[i] = new Array(8);
-		for(j=1;j<9;j++){							//Pattern
-			SequencesTmp = new Array(7);
-			for(i2=0;i2<7;i2++){					//Instrument
-				SequencesTmp[i2] = new Array(16);
-				for(j2=1;j2<17;j2++){				//Step
-					SequencesTmp[i2][j2] = 0;
+	for(_bank = 0; _bank < banks.length; _bank++){
+		sequences[banks[_bank]] = {};
+
+		for(_pattern = 1; _pattern <= patterns; _pattern++){
+			sequences[banks[_bank]][_pattern] = {};
+			for(circuit = 0; circuit < circuits.length; circuit++){
+				sequences[banks[_bank]][_pattern][circuits[circuit]] = {};
+				for(_step = 1; _step <= 16; _step++){
+					sequences[banks[_bank]][_pattern][circuits[circuit]][_step] = 0;
 				}
-				SequencesTmp[7] = 16;
+				sequences[banks[_bank]][_pattern]["pattern_length"] = maxSteps;
 			}
-			Banks[i][j] = SequencesTmp;
 		}
 	}
 
@@ -377,18 +410,18 @@ $(document).ready(function(){
 
 	{ // Grouping buttons 7,8
 		$('#but7').bind('click', function(event) {
-			if(shiftEngaged){	//Clear pattern
-				for(i=1;i<7;i++){
-					for(j=1;j<17;j++){
-						Sequences[i][j] = 0;
+			if(shiftEngaged){	//Clear pattern - TODO: Verify clear in play mode is correct
+				for(circuit = 1; circuit < 7; circuit++){
+					for(_step = 1;_step <= maxSteps; _step++){
+						active_sequence[circuits[circuit]][_step] = 0;
 					}
 				}
-				Sequences[7] = 16;
-				patternLength = 16;
-				step = 1;
+				active_sequence.pattern_length = maxSteps;
+				pattern_length = maxSteps;
+				resetStep();
 			}
 			else{
-				pattern = 7;
+				active_pattern = 7;
 			}
 			initialize();
 		});
@@ -398,7 +431,7 @@ $(document).ready(function(){
 				//TODO:Reset Measure [SONG MODE]
 			}
 			else{
-				pattern = 8;
+				active_pattern = 8;
 			}
 			initialize();
 		});
@@ -408,29 +441,31 @@ $(document).ready(function(){
 
 		$('#butShift').bind('click', function(event) {
 			$('#butShift').toggleClass('engaged');
-			shiftEngaged=(shiftEngaged)?false:true;
+			shiftEngaged = (shiftEngaged) ? false : true;
 		});
 
 		$('#butABCD').bind('click', function(event){
 			if(shiftEngaged){
-				song=(song==1)?2:1;
+				song = (song == 1) ? 2 : 1;
 				$('#song').removeClass();
 				$('#song').addClass('song' + song);
 			}
 			else{
-				$('#bank').removeClass('pos' + bank);
-				Banks[bank][pattern] = Sequences;
+				$('#bank').removeClass('pos' + (bank+1));
+				sequences[banks[bank][active_pattern]] = active_sequence;
 				bank++;
-				if(bank > 4){bank=1;}
-				$('#bank').addClass('pos' + bank);
-				Sequences = Banks[bank][pattern];
-				patternLength = Sequences[7];
+				if(bank > 3){
+					bank = 0;
+				}
+				$('#bank').addClass('pos' + (bank+1));
+				active_sequence = sequences[banks[bank]][active_pattern];
+				pattern_length = sequences[banks[bank]][active_pattern].pattern_length;
 			}
 			initialize();
 		});
 
 		$('#butStart').bind('click', function(event){
-			switch(selectedMode){
+			switch(selected_mode){
 				case 1:
 					// start sequence playback
 					break;
@@ -441,10 +476,10 @@ $(document).ready(function(){
 					// I forget
 					break;
 				case 4:
-					Sequences[selectedInstrument][step] = 1;
+					resetSequence();
 					nextStep();
 					initialize();
-					playFile(instruments[selectedInstrument],false);
+					playFile(instruments[selected_instrument],false);
 					break;
 				case 5:
 					startBeat();
@@ -453,7 +488,7 @@ $(document).ready(function(){
 		});
 
 		$('#butStop').bind('click', function(event){
-			switch(selectedMode){
+			switch(selected_mode){
 				case 1:
 					// stop sequence playback
 					break;
@@ -464,7 +499,7 @@ $(document).ready(function(){
 					// I forget
 					break;
 				case 4:
-					Sequences[selectedInstrument][step] = 0;
+					active_sequence[circuits[selected_instrument]][step] = 0;
 					nextStep();
 					initialize();
 					break;
@@ -477,67 +512,70 @@ $(document).ready(function(){
 
 	{ // Grouping instrument button functions
 		$('#butBassDrum').bind('click', function(event) {
-			selectedInstrument = 1;
-			if(selectedMode > 3){
-				playFile(instruments[selectedInstrument],false);
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1; //(step==1)?16:step-1 to account for lag?
+			selected_instrument = 1;
+			if(selected_mode > 3){
+				playFile(instruments[selected_instrument],false);
+				if(selected_mode == 5){
+					resetSequence(); //(step==1)?16:step-1 to account for lag?
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
 			else{
-				measure++;
-				if(measure<1){
-					measure = 128;
+				active_measure++;
+				if(active_measure < 1){
+					active_measure = 128;
 				}
 				initialize();
 			}
 		});
+
 		$('#butAccent').bind('click', function(event) {
-			selectedInstrument=0;
-			sharedDisplayInstrument=selectedInstrument;
-			if(selectedMode > 3){
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+			selected_instrument = 0;
+			sharedDisplayInstrument = selected_instrument;
+			if(selected_mode > 3){
+				if(selected_mode == 5){
+					resetSequence();
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
 		});
+
 		$('#butSnareDrum').bind('click', function(event) {
-			selectedInstrument = 2;
-			if(selectedMode > 3){
-				playFile(instruments[selectedInstrument],false);
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+			selected_instrument = 2;
+			if(selected_mode > 3){
+				playFile(instruments[selected_instrument],false);
+				if(selected_mode == 5){
+					resetSequence();
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
 			else{
-				measure++;
-				if(measure>128){
-					measure = 1;
+				active_measure++;
+				if(active_measure > 128){
+					active_measure = 1;
 				}
 				initialize();
 			}
 		});
+
 		$('#butOhihat').bind('click', function(event) {
-			selectedInstrument=3;
-			if(selectedMode > 3){
-				playFile(instruments[selectedInstrument],false);
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+			selected_instrument = 3;
+			if(selected_mode > 3){
+				playFile(instruments[selected_instrument],false);
+				if(selected_mode == 5){
+					resetSequence();
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
@@ -545,15 +583,16 @@ $(document).ready(function(){
 				// Enter  [SONG MODE]
 			}
 		});
+
 		$('#butChihat').bind('click', function(event) {
-			selectedInstrument=4;
-			if(selectedMode > 3){
-				playFile(instruments[selectedInstrument],false);
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+			selected_instrument = 4;
+			if(selected_mode > 3){
+				playFile(instruments[selected_instrument],false);
+				if(selected_mode == 5){
+					resetSequence();
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
@@ -561,30 +600,31 @@ $(document).ready(function(){
 				// De capo  [SONG MODE]
 			}
 		});
+
 		$('#butCymbal').bind('click', function(event) {
-			selectedInstrument=5;
-			sharedDisplayInstrument=selectedInstrument;
-			if(selectedMode > 3){
-				playFile(instruments[selectedInstrument],false);
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+			selected_instrument = 5;
+			sharedDisplayInstrument = selected_instrument;
+			if(selected_mode > 3){
+				playFile(instruments[selected_instrument],false);
+				if(selected_mode == 5){
+					resetSequence();
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
 		});
 		$('#butHandClap').bind('click', function(event) {
-			selectedInstrument=6;
-			sharedDisplayInstrument=selectedInstrument;
-			if(selectedMode > 3){
-				playFile(instruments[selectedInstrument],false);
-				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+			selected_instrument = 6;
+			sharedDisplayInstrument = selected_instrument;
+			if(selected_mode > 3){
+				playFile(instruments[selected_instrument],false);
+				if(selected_mode == 5){
+					resetSequence();
 				}
 				else{
-					step = 1;
+					resetStep();
 				}
 				initialize();
 			}
@@ -593,5 +633,6 @@ $(document).ready(function(){
 
 	$("#knobTempo").css('-moz-transform','rotate(-232deg)');
 	$("#knobTempo").css('-webkit-transform','rotate(-232deg)');
+
 });
 
