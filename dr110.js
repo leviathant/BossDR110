@@ -1,26 +1,38 @@
-// Boss DR-110 Emulation code -- contact leviathant@gmail.com for more info.
+// Boss DR-110 Emulation code
+// Contact leviathant@gmail.com or visit http://github.com/leviathant/dr110 for more info.
+
 //Todo: Accent & Balance
 var clicking = false;
-var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-var songs=new Array(2); // Consider going JSON?
-var Banks=new Array(2);
-var Sequences=new Array(7);
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1; //Todo: Check features, not browsers.
+
+var songs = {};
+var sequences = {};
+var active_sequence = {};
+
+var banks = ["A","B","C","D"];
+var circuits = ["AC","BD","SD","OH","CH","CY","HC"];
+var patterns = 8;
+
 var shiftEngaged = false;
-var tempo=120;
+var tempo = 120;
 var maxTempo = 320;
 var knobMin = 12;
 var knobMax = 88;
+
 var volume=0.8; /* 0-1 */
 var accent=0.2; /* 0-1 */
 var rate = 15000/tempo;
+
 var selectedInstrument = 1;
-var bank = 1;
+var bank = 0;
 var measure = 1;
 var step = 1; // Theoretically goes up to 16
 var song = 1;
 var patternLength = 16;
+var maxSteps = 16;
 var pattern = 1;
 var selectedMode = 4;
+
 var hihatAudio = new Audio(); // Global hihat audio for supporting open/closed hihat cutoff
 var DR110HEART = "";
 var sharedDisplayInstrument = 0;
@@ -35,7 +47,7 @@ startBeat = function(){
 	DR110HEART = "";
 	step = 1;
 	rate = 15000/tempo;
-	DR110HEART=setInterval("staticTempoBeat()",rate);
+	DR110HEART = setInterval("staticTempoBeat()",rate);
 };
 
 stopBeat = function(){
@@ -47,17 +59,17 @@ stopBeat = function(){
 
 staticTempoBeat = function(){
 	nextStep();
-	for(q=1;q<7;q++){
-		if(Sequences[q][step] == 1){
-			if((q == 3) && (Sequences[4][step] == 1)){
+	for(circuit=0;circuit<=6;circuit++){
+		if(active_sequence[circuits[circuit]][step] == 1){
+			if((circuits[circuit] == "OH") && (active_sequence["CH"][step] == 1)){
 				// Don't play the open hihat if it lands on the same beat as a closed hihat.
 			}
-			else if((q == 4) && (Sequences[3][step] == 1)){
-				playFile(instruments[7],(Sequences[0][step]==1)); // Play the pedal hat
+			else if((circuits[circuit] == "CH") && (active_sequence["OH"][step] == 1)){
+				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
 			}
 			else{
 
-				playFile(instruments[q],(Sequences[0][step]==1));
+				playFile(instruments[q],(active_sequence[step]==1));
 			}
 
 		}
@@ -83,6 +95,7 @@ instruments = {
 	7:'PedalHat' //Only occurs when open and closed hats are triggered simultaneously
 };
 
+
 initialize = function(){
 	$('#bank').html(String.fromCharCode(64+bank));
 	$('#mode').html(mode[selectedMode]);
@@ -97,7 +110,7 @@ writeDot = function(thisInstrument,thisStep,override){
 	}
 	else{
 		try{
-			if(Sequences[(override)?override:thisInstrument][thisStep] === 0){
+			if(active_sequence[circuits[(override)?override:thisInstrument]][thisStep] === 0){
 				$("#sequ" + instruments[thisInstrument]).append("<img src=\"./images/dot_off.png\" class=\"step" + thisStep + "\">");
 			}
 			else{
@@ -247,13 +260,13 @@ numberButton = function(number){
 					$("#patternLength").css('left','300px');
 				}
 
-				Sequences[7] = patternLength;
+				active_sequence.pattern_length = patternLength;
 			}
 			else{
-				Banks[bank][pattern] = Sequences;
+				sequences[banks[bank]][pattern] = active_sequence;
 				pattern = number;
-				Sequences = Banks[bank][pattern];
-				patternLength = Sequences[7];
+				active_sequence = sequences[banks[bank]][pattern];
+				patternLength = active_sequence.pattern_length;
 				step = 1;
 			}
 			initialize();
@@ -267,10 +280,10 @@ numberButton = function(number){
 				selectedMode = number;
 			}
 			else{
-				Banks[bank][pattern] = Sequences;
+				sequences[banks[bank]][pattern] = active_sequence;
 				pattern = number;
-				Sequences = Banks[bank][pattern];
-				patternLength = Sequences[7];
+				active_sequence = sequences[banks[bank]][pattern];
+				patternLength = active_sequence.pattern_length;
 				step = 1;
 			}
 			initialize();
@@ -281,7 +294,7 @@ numberButton = function(number){
 nextStep = function(){
 	step++;
 	if(step>patternLength){
-		step = 1;
+		step = 1; //TODO: Double-check.
 	}
 };
 
@@ -326,7 +339,7 @@ volumeFunction = function(pct){
 };
 
 accentFunction = function(pct){
-	accent = .22-(pct/100) * 0.22;
+	accent = 0.22-(pct/100) * 0.22;
 	$("#accent").text(Math.round(accent * 100));
 };
 
@@ -347,28 +360,28 @@ $(document).ready(function(){
 	assignKnob("accent","accentFunction");
 
 	//Initialize instrument sequences
-	for(i=0;i<7;i++){
-		numberButton(i);
-		Sequences[i] = new Array(16);
-		for(j=1;j<17;j++){
-			Sequences[i][j] = 0;
+	for(circuit=0;circuit<=circuits.length;circuit++){
+		numberButton(circuit+1);
+		active_sequence[circuits[circuit]] = {}
+		for(step=1;step<=maxSteps;step++){
+			active_sequence[circuits[circuit]][step] = 0;
 		}
 	}
-	Sequences[7] = 16;
+
+	active_sequence.pattern_length = maxSteps;
 
 	//Initialize banks with empty sequences. TODO: Load with original Boss factory presets instead. Heh.
-	for(i=1;i<5;i++){								//Bank
-		Banks[i] = new Array(8);
-		for(j=1;j<9;j++){							//Pattern
-			SequencesTmp = new Array(7);
-			for(i2=0;i2<7;i2++){					//Instrument
-				SequencesTmp[i2] = new Array(16);
-				for(j2=1;j2<17;j2++){				//Step
-					SequencesTmp[i2][j2] = 0;
+	for(bank=0;bank<banks.length;bank++){
+		sequences[banks[bank]] = {};
+		for(pattern=1;pattern<=patterns;pattern++){
+			sequences[banks[bank]][pattern] = {};
+			for(circuit=0;circuit<circuits.length;circuit++){
+				sequences[banks[bank]][pattern][circuits[circuit]] = {};
+				for(step=1;step<=16;step++){
+					sequences[banks[bank]][pattern][circuits[circuit]][step] = 0;
 				}
-				SequencesTmp[7] = 16;
+				sequences[banks[bank]][pattern]["pattern_length"] = maxSteps;
 			}
-			Banks[i][j] = SequencesTmp;
 		}
 	}
 
@@ -378,13 +391,13 @@ $(document).ready(function(){
 	{ // Grouping buttons 7,8
 		$('#but7').bind('click', function(event) {
 			if(shiftEngaged){	//Clear pattern
-				for(i=1;i<7;i++){
-					for(j=1;j<17;j++){
-						Sequences[i][j] = 0;
+				for(circuit=1;circuit<7;circuit++){
+					for(step=1;step<=maxSteps;step++){
+						active_sequence[circuits[circuit]][step] = 0;
 					}
 				}
-				Sequences[7] = 16;
-				patternLength = 16;
+				active_sequence.pattern_length = maxSteps;
+				patternLength = maxSteps;
 				step = 1;
 			}
 			else{
@@ -419,12 +432,12 @@ $(document).ready(function(){
 			}
 			else{
 				$('#bank').removeClass('pos' + bank);
-				Banks[bank][pattern] = Sequences;
+				sequences[banks[bank][pattern]] = active_sequence;
 				bank++;
-				if(bank > 4){bank=1;}
-				$('#bank').addClass('pos' + bank);
-				Sequences = Banks[bank][pattern];
-				patternLength = Sequences[7];
+				if(bank > 3){bank=0;}
+				$('#bank').addClass('pos' + (bank+1));
+				active_sequence = sequences[banks[bank]][pattern];
+				patternLength = sequences[banks[bank]][pattern].pattern_length;
 			}
 			initialize();
 		});
@@ -441,7 +454,7 @@ $(document).ready(function(){
 					// I forget
 					break;
 				case 4:
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 					nextStep();
 					initialize();
 					playFile(instruments[selectedInstrument],false);
@@ -464,7 +477,7 @@ $(document).ready(function(){
 					// I forget
 					break;
 				case 4:
-					Sequences[selectedInstrument][step] = 0;
+					active_sequence[selectedInstrument][step] = 0;
 					nextStep();
 					initialize();
 					break;
@@ -481,7 +494,7 @@ $(document).ready(function(){
 			if(selectedMode > 3){
 				playFile(instruments[selectedInstrument],false);
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1; //(step==1)?16:step-1 to account for lag?
+					active_sequence[circuits[selectedInstrument]][step] = 1; //(step==1)?16:step-1 to account for lag?
 				}
 				else{
 					step = 1;
@@ -501,7 +514,7 @@ $(document).ready(function(){
 			sharedDisplayInstrument=selectedInstrument;
 			if(selectedMode > 3){
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 				}
 				else{
 					step = 1;
@@ -514,7 +527,7 @@ $(document).ready(function(){
 			if(selectedMode > 3){
 				playFile(instruments[selectedInstrument],false);
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 				}
 				else{
 					step = 1;
@@ -534,7 +547,7 @@ $(document).ready(function(){
 			if(selectedMode > 3){
 				playFile(instruments[selectedInstrument],false);
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 				}
 				else{
 					step = 1;
@@ -550,7 +563,7 @@ $(document).ready(function(){
 			if(selectedMode > 3){
 				playFile(instruments[selectedInstrument],false);
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 				}
 				else{
 					step = 1;
@@ -567,7 +580,7 @@ $(document).ready(function(){
 			if(selectedMode > 3){
 				playFile(instruments[selectedInstrument],false);
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 				}
 				else{
 					step = 1;
@@ -581,7 +594,7 @@ $(document).ready(function(){
 			if(selectedMode > 3){
 				playFile(instruments[selectedInstrument],false);
 				if(selectedMode==5){
-					Sequences[selectedInstrument][step] = 1;
+					active_sequence[circuits[selectedInstrument]][step] = 1;
 				}
 				else{
 					step = 1;
