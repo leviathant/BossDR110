@@ -107,7 +107,7 @@ initialize = function(){
 	updateSequenceDisplay();
 };
 
-writeDot = function(thisInstrument,thisStep,override){
+writeDot = function(thisInstrument, thisStep, override){
 	if(((thisInstrument == selected_instrument) || (thisInstrument === 0 && selected_instrument == override))&& thisStep == step){
 		$("#sequ" + instruments[thisInstrument]).append("<img src=\"./images/dot_blink.png\" class=\"step" + thisStep + "\">");
 	}
@@ -132,7 +132,7 @@ updateSequenceDisplay = function(){
 		if(displayInstrument > 0 && displayInstrument < 5){
 			$("#sequ" + instruments[displayInstrument]).html("");
 			for(_step = 1; _step <= maxSteps; _step++){
-				writeDot(displayInstrument,_step,false);
+				writeDot(displayInstrument, _step, false);
 			}
 		}
 		else{ //Shared pattern display
@@ -150,7 +150,7 @@ updateSequenceDisplay = function(){
 				}
 				$("#sequ" + instruments[0]).html("");
 				for(_step = 1; _step < 17; _step++){
-					writeDot(0,_step,(sharedDisplayInstrument == selected_instrument) ? selected_instrument : sharedDisplayInstrument);
+					writeDot(0, _step, (sharedDisplayInstrument == selected_instrument) ? selected_instrument : sharedDisplayInstrument);
 				}
 			}
 		}
@@ -229,7 +229,7 @@ handle_keydown = function(e){
 	}
 };
 
-playFile = function(filename,withAccent){
+playFile = function(filename, withAccent){
 	if(filename == instruments[3] || filename == instruments[4] || filename == instruments[7]){ // Handle hihats as best as I can
 		hihat_audio.pause();
 		hihat_audio = new Audio();
@@ -250,7 +250,7 @@ playFile = function(filename,withAccent){
 		else{
 			audio.src = './audio/' +  filename + '.wav';
 		}
-		audio.volume = (withAccent) ? volume+accent : volume;
+		audio.volume = (withAccent) ? volume + accent : volume;
 		audio.play();
 	}
 };
@@ -321,7 +321,7 @@ createKnob = function(knobType){
 	});
 };
 
-assignKnob = function(knobType,knobFunction){
+assignKnob = function(knobType, knobFunction){
 	$("#" + knobType + "Control").mousemove(function(eventObj){
 		if(clicking === false) return;
 		var minValue = $("#" + knobType + "Control").offset().top;
@@ -338,7 +338,7 @@ assignKnob = function(knobType,knobFunction){
 };
 
 tempoFunction = function(pct){
-	tempo = Math.round((1-pct/100) * maxTempo);
+	tempo = Math.round((1 - pct / 100) * maxTempo);
 	$("#tempo").text(tempo + " bpm" );
 };
 
@@ -359,6 +359,10 @@ resetStep = function(){
 resetSequence = function(){
 	active_sequence[circuits[selected_instrument]][step] = 1;
 };
+
+send_trigger = function(){
+	playFile(instruments[selected_instrument], false);
+}
 
 
 $(document).ready(function(){
@@ -412,7 +416,7 @@ $(document).ready(function(){
 		$('#but7').bind('click', function(event) {
 			if(shiftEngaged){	//Clear pattern - TODO: Verify clear in play mode is correct
 				for(circuit = 1; circuit < 7; circuit++){
-					for(_step = 1;_step <= maxSteps; _step++){
+					for(_step = 1; _step <= maxSteps; _step++){
 						active_sequence[circuits[circuit]][_step] = 0;
 					}
 				}
@@ -479,7 +483,7 @@ $(document).ready(function(){
 					resetSequence();
 					nextStep();
 					initialize();
-					playFile(instruments[selected_instrument],false);
+					send_trigger();
 					break;
 				case 5:
 					startBeat();
@@ -514,7 +518,7 @@ $(document).ready(function(){
 		$('#butBassDrum').bind('click', function(event) {
 			selected_instrument = 1;
 			if(selected_mode > 3){
-				playFile(instruments[selected_instrument],false);
+				send_trigger();
 				if(selected_mode == 5){
 					resetSequence(); //(step==1)?16:step-1 to account for lag?
 				}
@@ -549,7 +553,7 @@ $(document).ready(function(){
 		$('#butSnareDrum').bind('click', function(event) {
 			selected_instrument = 2;
 			if(selected_mode > 3){
-				playFile(instruments[selected_instrument],false);
+				send_trigger();
 				if(selected_mode == 5){
 					resetSequence();
 				}
@@ -570,7 +574,7 @@ $(document).ready(function(){
 		$('#butOhihat').bind('click', function(event) {
 			selected_instrument = 3;
 			if(selected_mode > 3){
-				playFile(instruments[selected_instrument],false);
+				send_trigger();
 				if(selected_mode == 5){
 					resetSequence();
 				}
@@ -587,7 +591,7 @@ $(document).ready(function(){
 		$('#butChihat').bind('click', function(event) {
 			selected_instrument = 4;
 			if(selected_mode > 3){
-				playFile(instruments[selected_instrument],false);
+				send_trigger();
 				if(selected_mode == 5){
 					resetSequence();
 				}
@@ -605,7 +609,7 @@ $(document).ready(function(){
 			selected_instrument = 5;
 			sharedDisplayInstrument = selected_instrument;
 			if(selected_mode > 3){
-				playFile(instruments[selected_instrument],false);
+				send_trigger();
 				if(selected_mode == 5){
 					resetSequence();
 				}
@@ -619,7 +623,7 @@ $(document).ready(function(){
 			selected_instrument = 6;
 			sharedDisplayInstrument = selected_instrument;
 			if(selected_mode > 3){
-				playFile(instruments[selected_instrument],false);
+				send_trigger();
 				if(selected_mode == 5){
 					resetSequence();
 				}
