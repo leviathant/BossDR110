@@ -10,6 +10,8 @@ var sequences = {};
 var active_sequence = {};
 
 var banks = ["A","B","C","D"];
+var active_bank = 0;
+
 var circuits = ["AC","BD","SD","OH","CH","CY","HC"];
 var patterns = 8;
 
@@ -33,7 +35,7 @@ var maxSteps = 16;
 
 var song = 1;
 
-var active_pattern = 1;
+var active_pattern_number = 1;
 var pattern_length = 16;
 
 var selected_mode = 4;
@@ -70,10 +72,10 @@ staticTempoBeat = function(){
 				// Don't play the open hihat if it lands on the same beat as a closed hihat.
 			}
 			else if((circuits[circuit] == "CH") && (active_sequence["OH"][step] == 1)){
-				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
+				playFile(instruments[7],(active_sequence[step] == 1)); // Play the pedal hat
 			}
 			else{
-				playFile(instruments[circuit],(active_sequence[step]==1));
+				playFile(instruments[circuit],(active_sequence[step] == 1));
 			}
 		}
 	}
@@ -103,7 +105,7 @@ initialize = function(){
 	$('#bank').html(String.fromCharCode(65+bank));
 	$('#mode').html(mode[selected_mode]);
 	$('#song').html((song == 1) ? "I" : "II");
-	$('#pattern').html(active_pattern);
+	$('#pattern').html(active_pattern_number);
 	updateSequenceDisplay();
 };
 
@@ -270,11 +272,7 @@ numberButton = function(number){
 				active_sequence.pattern_length = pattern_length;
 			}
 			else{
-				sequences[banks[bank]][active_pattern] = active_sequence;
-				active_pattern = number;
-				active_sequence = sequences[banks[bank]][active_pattern];
-				pattern_length = active_sequence.pattern_length;
-				step = 1;
+				selectPattern(number);
 			}
 			initialize();
 		});
@@ -289,15 +287,19 @@ numberButton = function(number){
 				}
 			}
 			else{
-				sequences[banks[bank]][active_pattern] = active_sequence;
-				active_pattern = number;
-				active_sequence = sequences[banks[bank]][active_pattern];
-				pattern_length = active_sequence.pattern_length;
-				step = 1;
+				selectPattern(number);
 			}
 			initialize();
 		});
 	}
+};
+
+selectPattern = function(number){
+	sequences[banks[bank]][active_pattern_number] = active_sequence;
+	active_pattern_number = number;
+	active_sequence = sequences[banks[bank]][active_pattern_number];
+	pattern_length = active_sequence.pattern_length;
+	step = 1;
 };
 
 nextStep = function(){
@@ -362,7 +364,7 @@ resetSequence = function(){
 
 send_trigger = function(){
 	playFile(instruments[selected_instrument], false);
-}
+};
 
 
 $(document).ready(function(){
@@ -425,7 +427,7 @@ $(document).ready(function(){
 				resetStep();
 			}
 			else{
-				active_pattern = 7;
+				active_pattern_number = 7;
 			}
 			initialize();
 		});
@@ -435,7 +437,7 @@ $(document).ready(function(){
 				//TODO:Reset Measure [SONG MODE]
 			}
 			else{
-				active_pattern = 8;
+				active_pattern_number = 8;
 			}
 			initialize();
 		});
@@ -456,14 +458,14 @@ $(document).ready(function(){
 			}
 			else{
 				$('#bank').removeClass('pos' + (bank+1));
-				sequences[banks[bank][active_pattern]] = active_sequence;
+				sequences[banks[bank][active_pattern_number]] = active_sequence;
 				bank++;
 				if(bank > 3){
 					bank = 0;
 				}
 				$('#bank').addClass('pos' + (bank+1));
-				active_sequence = sequences[banks[bank]][active_pattern];
-				pattern_length = sequences[banks[bank]][active_pattern].pattern_length;
+				active_sequence = sequences[banks[bank]][active_pattern_number];
+				pattern_length = sequences[banks[bank]][active_pattern_number].pattern_length;
 			}
 			initialize();
 		});
