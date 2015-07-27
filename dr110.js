@@ -49,14 +49,13 @@ String.prototype.capitalize = function() {
 };
 
 startBeat = function(){
-	sequence_to_tone(sequences.A[1]);
-
 	clearInterval(DR110HEART);
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
 	resetStep();
 	rate = 15000/tempo;
-	DR110HEART = setInterval("staticTempoBeat()",rate);
+	//DR110HEART = setInterval("staticTempoBeat()",rate);
+	sequence_to_tone(sequences.A[1]);
 };
 
 stopBeat = function(){
@@ -255,7 +254,7 @@ playFile = function(filename, withAccent){
 			audio.src = './audio/' +  filename + '.wav';
 		}
 		audio.volume = (withAccent) ? volume + accent : volume;
-		audio.play();
+		//audio.play();
 	}
 };
 
