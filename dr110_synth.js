@@ -28,9 +28,10 @@ TestPoint   Time  Voltage   Voice(?)
 Handclap Retrigger Time:
 10 10ms x3
 */
+
 var clapTriggerTime = 0.01;
 var clapLength = 0.7;
-var lineNoise = 0.001;
+var mute = 0.001;
 
 noiseBuffer = function() {
   var bufferSize = this.context.sampleRate;
@@ -72,17 +73,16 @@ Clap.prototype.trigger = function(time){
   for(trigger = 0; trigger < 3; trigger++){
     this.amp.gain.setValueAtTime(1, time + (trigger * clapTriggerTime));
     this.amp.gain.exponentialRampToValueAtTime(
-      lineNoise,
+      mute,
       time + ((trigger + 1) * clapTriggerTime)
       );
   }
 
   this.amp.gain.setValueAtTime(1, time + (3*clapTriggerTime));
-  this.amp.gain.exponentialRampToValueAtTime(lineNoise, time + 0.68);
+  this.amp.gain.exponentialRampToValueAtTime(mute, time + 0.68);
 
   this.noise.start(time);
   this.noise.stop(time + clapLength);
-  console.log(clapLength);
 };
 
 
@@ -154,8 +154,8 @@ var sequence_to_tone = function(seq) {
     if(seq.OH[i]==1 && seq.CH[i]===0){  //Only open if not also closed.
      Score.OH.push(sixteenths[i-1]);
     }
-    if(seq.HC[i]==1){
-     Score.HC.push(sixteenths[i-1]);
+    if(seq.CP[i]==1){
+     Score.CP.push(sixteenths[i-1]);
     }
     if(seq.CY[i]==1){
      Score.CY.push(sixteenths[i-1]);
@@ -170,7 +170,7 @@ var sequence_to_tone = function(seq) {
     kick.trigger(time);
   });
 
-  Tone.Note.route("HC", function(time){
+  Tone.Note.route("CP", function(time){
     clap.trigger(time);
   });
 

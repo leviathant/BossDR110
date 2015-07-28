@@ -12,7 +12,7 @@ var active_sequence = {};
 var banks = ["A","B","C","D"];
 var active_bank = 0;
 
-var circuits = ["AC","BD","SD","OH","CH","CY","HC"];
+var circuits = ["AC","BD","SD","OH","CH","CY","CP"];
 var patterns = 8;
 
 var shiftEngaged = false;
