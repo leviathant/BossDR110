@@ -28,6 +28,9 @@ TestPoint   Time  Voltage   Voice(?)
 Handclap Retrigger Time:
 10 10ms x3
 */
+var clapTriggerTime = 0.01;
+var clapLength = 0.7;
+var lineNoise = 0.001;
 
 noiseBuffer = function() {
   var bufferSize = this.context.sampleRate;
@@ -65,19 +68,21 @@ Clap.prototype.setup = function() {
 
 Clap.prototype.trigger = function(time){
   this.setup();
-  this.amp.gain.setValueAtTime(1, time);
-  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.01);
 
-  this.amp.gain.setValueAtTime(1, time + 0.01);
-  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.02);
-  this.amp.gain.setValueAtTime(1, time + 0.02);
-  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.03);
-  this.amp.gain.setValueAtTime(1, time + 0.03);
-  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.68);
+  for(trigger = 0; trigger < 3; trigger++){
+    this.amp.gain.setValueAtTime(1, time + (trigger * clapTriggerTime));
+    this.amp.gain.exponentialRampToValueAtTime(
+      lineNoise,
+      time + ((trigger + 1) * clapTriggerTime)
+      );
+  }
+
+  this.amp.gain.setValueAtTime(1, time + (3*clapTriggerTime));
+  this.amp.gain.exponentialRampToValueAtTime(lineNoise, time + 0.68);
 
   this.noise.start(time);
-  this.noise.stop(time + 0.7);
-  console.log('clap');
+  this.noise.stop(time + clapLength);
+  console.log(clapLength);
 };
 
 
@@ -159,6 +164,7 @@ var sequence_to_tone = function(seq) {
      Score.BD.push(sixteenths[i-1]);
     }
   }
+
 
   Tone.Note.route("BD", function(time){
     kick.trigger(time);
