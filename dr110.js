@@ -63,6 +63,7 @@ stopBeat = function(){
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
 	resetStep();
+	Tone.Transport.stop(); // Tone doesn't restart in Firefox?
 };
 
 staticTempoBeat = function(){

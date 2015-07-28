@@ -1,6 +1,4 @@
-function Kick(context) {
-  this.context = context;
-}
+
 
 /*
 HH OSC
@@ -31,18 +29,74 @@ Handclap Retrigger Time:
 10 10ms x3
 */
 
+noiseBuffer = function() {
+  var bufferSize = this.context.sampleRate;
+  var buffer = this.context.createBuffer(1, bufferSize, this.context.sampleRate);
+  var output = buffer.getChannelData(0);
+
+  for (var i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+
+  return buffer;
+};
+
+function Clap(context) {
+  this.context = context;
+}
+
+Clap.prototype.setup = function() {
+  this.noise = this.context.createBufferSource(); // Init sample
+  this.noise.buffer = noiseBuffer();              // Sample noise
+  this.amp = this.context.createGain();
+  this.noise.connect(this.amp);
+
+  // var noiseFilter = this.context.createBiquadFilter();
+  // noiseFilter.type = 'highpass';
+  // noiseFilter.frequency.value = 1000;
+  // this.noise.connect(noiseFilter);
+  // noiseFilter.connect(this.noiseEnvelope);
+  // ...then modulate the filter frequency
+  // with a free-running LFO.
+
+  this.amp.connect(this.context.destination);
+
+};
+
+Clap.prototype.trigger = function(time){
+  this.setup();
+  this.amp.gain.setValueAtTime(1, time);
+  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.01);
+
+  this.amp.gain.setValueAtTime(1, time + 0.01);
+  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.02);
+  this.amp.gain.setValueAtTime(1, time + 0.02);
+  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.03);
+  this.amp.gain.setValueAtTime(1, time + 0.03);
+  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.68);
+
+  this.noise.start(time);
+  this.noise.stop(time + 0.7);
+  console.log('clap');
+};
+
+
+function Kick(context) {
+  this.context = context;
+}
+
 Kick.prototype.setup = function() {
-  this.osc = this.context.createOscillator();
-  this.gain = this.context.createGain();
-  this.osc.connect(this.gain);
-  this.gain.connect(this.context.destination);
+  this.osc = this.context.createOscillator(); // Initialize noise source
+  this.amp = this.context.createGain();      // Initialize amplifier
+  this.osc.connect(this.amp);                // Route noise source to amp
+  this.amp.connect(this.context.destination);// Connect amp to output
 };
 
 Kick.prototype.trigger = function(time) {
   // this.setup();
 
-  // this.osc.frequency.setValueAtTime(150, time);
-  // this.gain.gain.setValueAtTime(1, time);
+  // this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
+  // this.gain.gain.setValueAtTime(1, time);        // Set osc volume
 
   // this.osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
   // this.gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
@@ -69,6 +123,7 @@ var Score = {};
 
 var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
+  var clap = new Clap(context);
   Tone.Transport.bpm.value = tempo;
 
   for(circuit=0; circuit<=circuits.length; circuit++){
@@ -107,6 +162,10 @@ var sequence_to_tone = function(seq) {
 
   Tone.Note.route("BD", function(time){
     kick.trigger(time);
+  });
+
+  Tone.Note.route("HC", function(time){
+    clap.trigger(time);
   });
 
   Tone.Note.parseScore(Score);
