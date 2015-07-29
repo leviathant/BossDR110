@@ -1,4 +1,8 @@
+/*
 
+OscNode/AudioBuffer > FilterNode > GainNode  > AudioDestinationNode
+AudioBuffer > AudioBufferSourceNode
+*/
 
 /*
 HH OSC
@@ -27,6 +31,39 @@ TestPoint   Time  Voltage   Voice(?)
 
 Handclap Retrigger Time:
 10 10ms x3
+
+currentNoteStartTime = time;
+
+while(nextNoteTime < audioContext.currentTime + scheduleAheadTime){
+  scheduleNote(current16thNote, nextNoteTime);
+  nextNote();
+}
+
+scheduleNote(time,nextTime){
+  noteLength = time - nextTime;
+  osc.start(time);
+  osc.stop(time + noteLength);
+}
+
+function nextNote(){
+  var secondsPerVeat = 60 / tempo;
+  nextNoteTime += 0.25 * secondsPerBeat;
+  currentSixteenthNote++;
+  if(currentSixteenthNote == 16){
+    currentSixteenthNote = 0;
+  }
+}
+*/
+
+/*
+
+loopDelay = (60 / tempo) * 8; // 8 measures, presumable
+
+setNextLoop = function(){
+  nextLoop = audioContext.currentTime
+  - ((audioContext.currentTime - loopStart) & loopDelay)
+  + loopDelay;
+};
 */
 
 var clapTriggerTime = 0.01;
@@ -45,9 +82,61 @@ noiseBuffer = function() {
   return buffer;
 };
 
-function Clap(context) {
+HiHat = function(context) {
   this.context = context;
-}
+};
+
+HiHat.prototype.setup = function(){
+  this.amp = this.context.createGain();      // Initialize amplifier
+
+  this.noise = this.context.createBufferSource(); // Init sample
+  this.noise.buffer = noiseBuffer();              // Sample noise
+
+  this.osc = [];
+  for(o=0;o<=3;o++){
+    this.osc[o] = this.context.createOscillator();
+    this.osc[o].type = 'square';
+    this.osc[o].connect(this.amp);
+  }
+
+  this.noise.connect(this.amp);                // Route noise source to amp
+  this.amp.connect(this.context.destination);// Connect amp to output
+};
+
+HiHat.prototype.trigger = function(time, type){
+  this.setup();
+
+  switch(type){
+    case 'open':
+      this.duration = 0.7;
+    break;
+    case 'closed':
+      this.duration = 0.08;
+    break;
+    case 'pedaled':
+      this.duration = 0.2;
+    break;
+  }
+
+  this.osc[0].frequency.setValueAtTime(880, time);  // Set osc freq
+  this.osc[1].frequency.setValueAtTime(1160, time);  // Set osc freq
+  this.osc[2].frequency.setValueAtTime(3280, time);  // Set osc freq
+  this.osc[3].frequency.setValueAtTime(2250, time);  // Set osc freq
+  this.amp.gain.setValueAtTime(1, time);
+  this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
+
+  this.noise.start(time);
+  this.noise.stop(time + this.duration);
+  for(o=0;o<=this.osc.length;o++){
+    this.osc[o].start(time);
+    this.osc[o].stop(time + this.duration);
+  }
+
+};
+
+Clap = function(context){
+  this.context = context;
+};
 
 Clap.prototype.setup = function() {
   this.noise = this.context.createBufferSource(); // Init sample
@@ -98,21 +187,21 @@ Kick.prototype.setup = function() {
 };
 
 Kick.prototype.trigger = function(time) {
-  // this.setup();
+  this.setup();
 
-  // this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
-  // this.gain.gain.setValueAtTime(1, time);        // Set osc volume
+  this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
+  this.amp.gain.setValueAtTime(1, time);        // Set osc volume
 
-  // this.osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-  // this.gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
+  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
 
-  // this.osc.start(time);
+  this.osc.start(time);
 
-  // this.osc.stop(time + 0.5);
-  var audio = new Audio();
-  audio.src = './audio/BassDrum.wav';
-  audio.volume = 0.8;//(withAccent) ? volume + accent : volume;
-  audio.play();
+  this.osc.stop(time + 0.5);
+  // var audio = new Audio();
+  // audio.src = './audio/BassDrum.wav';
+  // audio.volume = 0.8;//(withAccent) ? volume + accent : volume;
+  // audio.play();
 };
 
 var context = new AudioContext();
@@ -129,6 +218,7 @@ var Score = {};
 var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
   var clap = new Clap(context);
+  var hihat = new HiHat(context);
   Tone.Transport.bpm.value = tempo;
 
   for(circuit=0; circuit<=circuits.length; circuit++){
@@ -165,9 +255,20 @@ var sequence_to_tone = function(seq) {
     }
   }
 
-
-  Tone.Note.route("BD", function(time){
+  Tone.Note.route('BD', function(time){
     kick.trigger(time);
+  });
+
+  Tone.Note.route('OH', function(time){
+    hihat.trigger(time, 'open');
+  });
+
+  Tone.Note.route('CH', function(time){
+    hihat.trigger(time,'closed');
+  });
+
+  Tone.Note.route('OH', function(time){
+    hihat.trigger(time, 'pedaled');
   });
 
   Tone.Note.route("CP", function(time){
