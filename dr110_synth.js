@@ -2,8 +2,12 @@
 
 OscNode/AudioBuffer > FilterNode > GainNode  > AudioDestinationNode
 AudioBuffer > AudioBufferSourceNode
-*/
 
+osc -> masterGain -> Filter -> Gain -> Destination
+
+*/
+hh1 = [880, 1160, 3280, 2250];
+hh2 = [870, 1220, 3150, 2150];
 /*
 HH OSC
 0.88ms
@@ -21,7 +25,7 @@ Envelope Times:
 TestPoint   Time  Voltage   Voice(?)
 5 700ms   6v    (OH)
 6 80ms    6v    (CH)
-7 60ms    6v    (CY)
+7 60ms    6v    (CY) Bell
 8 900ms   6v    (CY)
 9 1.4s    2.7v  (CY)
 11 140ms   5v   (HC)
@@ -66,8 +70,15 @@ setNextLoop = function(){
 };
 */
 
+// Based on values from schemes, needs to be compared to samples
+var context = new AudioContext();
+
 var clapTriggerTime = 0.01;
 var clapLength = 0.7;
+var snareDecay = 0.1;
+var kickDecay = 0.5; // 0.1?
+var openHatDecay = 0.7;
+var closedHatDecay = 0.08;
 var mute = 0.001;
 
 noiseBuffer = function() {
@@ -87,20 +98,37 @@ HiHat = function(context) {
 };
 
 HiHat.prototype.setup = function(){
+  //Four oscillators, mixed down
+  //Noise, at its own volume
+  //All filtered
+  this.noiseAmp = this.context.createGain();
+  this.oscMixer = this.context.createGain();
   this.amp = this.context.createGain();      // Initialize amplifier
 
   this.noise = this.context.createBufferSource(); // Init sample
   this.noise.buffer = noiseBuffer();              // Sample noise
+  this.noise.connect(this.noiseAmp);                // Route noise source to amp
+  this.noiseAmp.gain.value = 0.5;
 
   this.osc = [];
   for(o=0;o<=3;o++){
     this.osc[o] = this.context.createOscillator();
     this.osc[o].type = 'square';
-    this.osc[o].connect(this.amp);
+    this.osc[o].connect(this.oscMixer);
   }
+  this.oscMixer.gain.value = 0.3;
 
-  this.noise.connect(this.amp);                // Route noise source to amp
-  this.amp.connect(this.context.destination);// Connect amp to output
+  this.hiPass = this.context.createBiquadFilter();
+  this.hiPass.type = 'highpass';
+  this.hiPass.frequency.value = 7000;
+  this.hiPass.gain.value = 2;
+  this.hiPass.Q.value = 8;
+
+  this.noiseAmp.connect(this.amp);
+  this.oscMixer.connect(this.amp);
+  this.amp.connect(this.hiPass);
+
+  this.hiPass.connect(this.context.destination);// Connect amp to output
 };
 
 HiHat.prototype.trigger = function(time, type){
@@ -118,20 +146,20 @@ HiHat.prototype.trigger = function(time, type){
     break;
   }
 
-  this.osc[0].frequency.setValueAtTime(880, time);  // Set osc freq
-  this.osc[1].frequency.setValueAtTime(1160, time);  // Set osc freq
-  this.osc[2].frequency.setValueAtTime(3280, time);  // Set osc freq
-  this.osc[3].frequency.setValueAtTime(2250, time);  // Set osc freq
-  this.amp.gain.setValueAtTime(1, time);
-  this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
+  for(hho = 0; hho < 4; hho++){
+    this.osc[hho].frequency.value = hh1[hho]; //hh2 alt frequencies
+  }
+  this.amp.gain.value = 0.5;
 
   this.noise.start(time);
   this.noise.stop(time + this.duration);
-  for(o=0;o<=this.osc.length;o++){
+
+  for(o=0;o<this.osc.length;o++){
     this.osc[o].start(time);
     this.osc[o].stop(time + this.duration);
   }
-
+  this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
+  console.log("OHH");
 };
 
 Clap = function(context){
@@ -204,7 +232,7 @@ Kick.prototype.trigger = function(time) {
   // audio.play();
 };
 
-var context = new AudioContext();
+
 
 var sixteenths = [
   "0:0", "0:0:1","0:0:2","0:0:3",
@@ -219,47 +247,86 @@ var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
   var clap = new Clap(context);
   var hihat = new HiHat(context);
+  circuitScores = circuits;
+
   Tone.Transport.bpm.value = tempo;
 
-  for(circuit=0; circuit<=circuits.length; circuit++){
-    Score[circuits[circuit]]=[];
+  circuitScores.push("PH"); //Add a track for the pedaled hat.
+
+  for(circuit=0; circuit<=circuitScores.length; circuit++){
+    Score[circuitScores[circuit]]=[];
   }
-  Score["PH"] = [];
 
   for(i=1; i<=seq.pattern_length; i++){
-    if(seq.BD[i]==1){
-     Score.BD.push(sixteenths[i-1]);
-    }
-    if(seq.SD[i]==1){
-     Score.SD.push(sixteenths[i-1]);
-    }
-    if(seq.CH[i]==1){
-      if(seq.OH[i]==1){                 // Pedal the hat
-        Score.PH.push(sixteenths[i-1]);
+
+    for (var key in seq){
+
+      if(key.length == 2){
+
+        if(key == "CH" || key == "OH"){
+          if(seq.CH[i]==1){
+            if(seq.OH[i]==1){                 // Pedal the hat
+              Score.PH.push(sixteenths[i-1]);
+            }
+            else{
+
+              Score.CH.push(sixteenths[i-1]);
+            }
+          }
+
+          if(seq.OH[i]==1 && seq.CH[i]===0){  //Only open if not also closed.
+            Score.OH.push(sixteenths[i-1]);
+          }
+        }
+        else{
+          if(seq[key][i]==1){
+            Score[key].push(sixteenths[i-1]);
+          }
+        }
       }
-      else{
-        Score.CH.push(sixteenths[i-1]);
-      }
-    }
-    if(seq.OH[i]==1 && seq.CH[i]===0){  //Only open if not also closed.
-     Score.OH.push(sixteenths[i-1]);
-    }
-    if(seq.CP[i]==1){
-     Score.CP.push(sixteenths[i-1]);
-    }
-    if(seq.CY[i]==1){
-     Score.CY.push(sixteenths[i-1]);
-    }
-    if(seq.BD[i]==1){
-     Score.BD.push(sixteenths[i-1]);
     }
   }
+  //   }
+  //   if(seq.BD[i]==1){
+  //    Score.BD.push(sixteenths[i-1]);
+  //   }
+
+  //   if(seq.SD[i]==1){
+  //    Score.SD.push(sixteenths[i-1]);
+  //   }
+
+  //   if(seq.CH[i]==1){
+  //     if(seq.OH[i]==1){                 // Pedal the hat
+  //       Score.PH.push(sixteenths[i-1]);
+  //     }
+  //     else{
+  //       Score.CH.push(sixteenths[i-1]);
+  //     }
+  //   }
+
+  //   if(seq.OH[i]==1 && seq.CH[i]===0){  //Only open if not also closed.
+  //    Score.OH.push(sixteenths[i-1]);
+  //   }
+
+  //   if(seq.CP[i]==1){
+  //    Score.CP.push(sixteenths[i-1]);
+  //   }
+
+  //   if(seq.CY[i]==1){
+  //    Score.CY.push(sixteenths[i-1]);
+  //   }
+
+  //   if(seq.BD[i]==1){
+  //    Score.BD.push(sixteenths[i-1]);
+  //   }
+  // }
 
   Tone.Note.route('BD', function(time){
     kick.trigger(time);
   });
 
   Tone.Note.route('OH', function(time){
+    console.log("Trigger OH");
     hihat.trigger(time, 'open');
   });
 

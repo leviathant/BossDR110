@@ -255,7 +255,9 @@ playFile = function(filename, withAccent){
 			audio.src = './audio/' +  filename + '.wav';
 		}
 		audio.volume = (withAccent) ? volume + accent : volume;
-		//audio.play();
+		audio.play();
+		//var kick  = new Kick(context);
+
 	}
 };
 
@@ -361,7 +363,10 @@ resetStep = function(){
 };
 
 resetSequence = function(){
+	//TODO: Is active_sequence redundant? e.g.
+	//sequences[banks[active_bank]][active_pattern_number][step] = 1;
 	active_sequence[circuits[selected_instrument]][step] = 1;
+	sequences[banks[active_bank]][active_pattern_number] = active_sequence;
 };
 
 send_trigger = function(){
