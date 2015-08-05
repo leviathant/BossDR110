@@ -76,7 +76,6 @@ setNextLoop = function(){
 var context = new AudioContext();
 
 var clapTriggerTime = 0.01;
-var clapLength = 0.7;
 var snareDecay = 0.1;
 var kickDecay = 0.5; // 0.1?
 var openHatDecay = 0.7;
@@ -165,7 +164,6 @@ HiHat.prototype.shortToGround = function(){
 };
 
 HiHat.prototype.trigger = function(time, type){
-
   switch(type){
     case 'open':
       this.duration = 0.7;
@@ -187,25 +185,48 @@ Clap = function(context){
 };
 
 Clap.prototype.setup = function() {
-  this.noise = this.context.createBufferSource(); // Init sample
-  this.noise.buffer = noiseBuffer();              // Sample noise
+  // White noise through a modulated bandpass filter
+
+  this.lfoAmount = this.context.createGain();
+  this.noiseAmp = this.context.createGain();
   this.amp = this.context.createGain();
-  this.noise.connect(this.amp);
 
-  // var noiseFilter = this.context.createBiquadFilter();
-  // noiseFilter.type = 'highpass';
-  // noiseFilter.frequency.value = 1000;
-  // this.noise.connect(noiseFilter);
-  // noiseFilter.connect(this.noiseEnvelope);
-  // ...then modulate the filter frequency
-  // with a free-running LFO.
+  this.noise = this.context.createBufferSource();
+  this.noise.buffer = noiseBuffer();
+  this.noise.connect(this.noiseAmp);
+  this.noise.loop = true;
 
-  this.amp.connect(this.context.destination);
+  this.lfo = this.context.createOscillator();
+  this.lfo.type = 'triangle';
+  this.lfo.frequency.value = 3;
+  this.lfo.start();
+
+  this.lfoAmount.gain.value = 50;
+
+  this.bandPass = this.context.createBiquadFilter();
+  this.bandPass.type = 'bandpass';
+  this.bandPass.frequency.value = 1000;
+  this.bandPass.gain.value = 3;
+  this.bandPass.Q.value = 4;
+
+  this.noiseAmp.connect(this.amp);
+
+  this.amp.connect(this.bandPass);
+
+  this.lfo.connect(this.lfoAmount);
+
+  this.bandPass.connect(this.context.destination);
+
+  this.lfoAmount.connect(this.bandPass.frequency);
+
+  this.noise.start();
+
+  this.amp.gain.value = mute;
+  return "handclap";
 
 };
 
 Clap.prototype.trigger = function(time){
-  this.setup();
 
   for(trigger = 0; trigger < 3; trigger++){
     this.amp.gain.setValueAtTime(1, time + (trigger * clapTriggerTime));
@@ -217,9 +238,6 @@ Clap.prototype.trigger = function(time){
 
   this.amp.gain.setValueAtTime(1, time + (3*clapTriggerTime));
   this.amp.gain.exponentialRampToValueAtTime(mute, time + 0.68);
-
-  this.noise.start(time);
-  this.noise.stop(time + clapLength);
 };
 
 
@@ -244,7 +262,6 @@ Kick.prototype.trigger = function(time) {
   this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
 
   this.osc.start(time);
-
   this.osc.stop(time + 0.5);
 };
 
@@ -261,7 +278,8 @@ var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
   var clap = new Clap(context);
   var hihat = new HiHat(context);
-  hihat.setup();
+  //hihat.setup();
+  //clap.setup();
   circuitScores = circuits;
 
   Tone.Transport.bpm.value = tempo;
@@ -282,7 +300,7 @@ var sequence_to_tone = function(seq) {
           if(seq[key][i]==1 && seq["OH"][i] == 1){
             Score["PH"].push(sixteenths[i-1]);
           }
-          else{
+          else if(seq[key][i]==1){
             Score[key].push(sixteenths[i-1]);
           }
         }
