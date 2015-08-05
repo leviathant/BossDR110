@@ -1,15 +1,11 @@
 /*
-
-OscNode/AudioBuffer > FilterNode > GainNode  > AudioDestinationNode
-AudioBuffer > AudioBufferSourceNode
-
-osc -> masterGain -> Filter -> Gain -> Destination
-
 hihat = new HiHat(context); hihat.setup(context); hihat.shortToGround(context);
 */
+
 hh1 = [880, 1160, 3280, 2250]; //Cymbal frequencies?
 hh2 = [870, 1220, 3150, 2150];
 hh3 = [465, 317, 820, 1150];
+
 /*
 HH OSC
 0.88ms
@@ -28,8 +24,8 @@ TestPoint   Time  Voltage   Voice(?)
 5 700ms   6v    (OH)
 6 80ms    6v    (CH)
 7 60ms    6v    (CY) Bell
-8 900ms   6v    (CY)
-9 1.4s    2.7v  (CY)
+8 900ms   6v    (CY) Metal tail
+9 1.4s    2.7v  (CY) Noise Tail
 11 140ms   5v   (HC)
 12 700ms   5v   (HC)
 13 100ms   5.7v (SD)
@@ -37,39 +33,6 @@ TestPoint   Time  Voltage   Voice(?)
 
 Handclap Retrigger Time:
 10 10ms x3
-
-currentNoteStartTime = time;
-
-while(nextNoteTime < audioContext.currentTime + scheduleAheadTime){
-  scheduleNote(current16thNote, nextNoteTime);
-  nextNote();
-}
-
-scheduleNote(time,nextTime){
-  noteLength = time - nextTime;
-  osc.start(time);
-  osc.stop(time + noteLength);
-}
-
-function nextNote(){
-  var secondsPerVeat = 60 / tempo;
-  nextNoteTime += 0.25 * secondsPerBeat;
-  currentSixteenthNote++;
-  if(currentSixteenthNote == 16){
-    currentSixteenthNote = 0;
-  }
-}
-*/
-
-/*
-
-loopDelay = (60 / tempo) * 8; // 8 measures, presumable
-
-setNextLoop = function(){
-  nextLoop = audioContext.currentTime
-  - ((audioContext.currentTime - loopStart) & loopDelay)
-  + loopDelay;
-};
 */
 
 // Based on values from schemes, needs to be compared to samples
@@ -78,20 +41,18 @@ var context = new AudioContext();
 var clapTriggerTime = 0.01;
 var snareDecay = 0.1;
 var kickDecay = 0.5; // 0.1?
-var openHatDecay = 0.7;
-var closedHatDecay = 0.08;
 var mute = 0.00001;
 
-noiseBuffer = function() {
+whiteNoise = function() {
   var bufferSize = this.context.sampleRate;
-  var buffer = this.context.createBuffer(1, bufferSize, this.context.sampleRate);
-  var output = buffer.getChannelData(0);
+  var sample = this.context.createBuffer(1, bufferSize, bufferSize);
+  var output = sample.getChannelData(0);
 
   for (var i = 0; i < bufferSize; i++) {
     output[i] = Math.random() * 2 - 1;
   }
 
-  return buffer;
+  return sample;
 };
 
 HiHat = function(context) {
@@ -99,62 +60,55 @@ HiHat = function(context) {
 };
 
 HiHat.prototype.setup = function(){
-  //Four oscillators, mixed down
-  //Noise, at its own volume
-  //All bandpass filtered, LFO on the bandpass frequency
-
+  /* Initialize gain stages - controllable amplifiers (CA) */
   this.noiseAmp = this.context.createGain();
-  this.oscMixer = this.context.createGain();
+  this.oscillatorSubmix = this.context.createGain();
   this.lfoAmount = this.context.createGain();
   this.amp = this.context.createGain();
 
-  this.noise = this.context.createBufferSource(); // Init sample
-  this.noise.buffer = noiseBuffer();              // Sample noise
-  this.noise.connect(this.noiseAmp);              // Route noise source to amp
-  this.noise.loop = true;
+  this.noise = this.context.createBufferSource();   // Allocate sample space,
+  this.noise.buffer = whiteNoise();                 // sample some noise,
+  this.noise.loop = true;                           // loop the noise sample,
+  this.noise.connect(this.noiseAmp);                // and route the audio to CA
+  this.noiseAmp.gain.value = 1;                     // and turn CA level up.
+  this.noise.start();
 
-  this.noiseAmp.gain.value = 1;
-
-  this.lfo = this.context.createOscillator();
-  this.lfo.type = 'sine';
-  this.lfo.frequency.value = 4 ;
-  this.lfo.start();
-
-  this.lfoAmount.gain.value = 300;
-
+  /* Generate four oscillators, mix them together, set combined volume */
   this.osc = [];
   for(o=0;o<=3;o++){
     this.osc[o] = this.context.createOscillator();
     this.osc[o].type = 'square';
-    this.osc[o].connect(this.oscMixer);
+    this.osc[o].frequency.value = hh1[o];
+    this.osc[o].connect(this.oscillatorSubmix);
+    this.osc[o].start();
   }
-  this.oscMixer.gain.value = 0.3;
+  this.oscillatorSubmix.gain.value = 0.3;
 
+  /* Filter configuration */
   this.hiPass = this.context.createBiquadFilter();
   this.hiPass.type = 'highpass';
   this.hiPass.frequency.value = 8000;
   this.hiPass.gain.value = 2;
   this.hiPass.Q.value = 8;
 
-  this.noiseAmp.connect(this.amp);
-  this.oscMixer.connect(this.amp);
-  this.amp.connect(this.hiPass);
+  /* A free-running LFO modulates sound independent of tempo */
+  this.lfo = this.context.createOscillator();
+  this.lfo.type = 'triangle';
+  this.lfo.frequency.value = 4 ;
+  this.lfoAmount.gain.value = 300;
 
   this.lfo.connect(this.lfoAmount);
-
-  this.hiPass.connect(this.context.destination);// Connect amp to output
-
   this.lfoAmount.connect(this.hiPass.frequency);
+  this.lfo.start();
 
-  for(hho = 0; hho < 4; hho++){
-    this.osc[hho].frequency.value = hh1[hho]; //hh2 alt frequencies
-  }
+  /* Pass the noise and the oscillators into the filter */
+  this.noiseAmp.connect(this.amp);
+  this.oscillatorSubmix.connect(this.amp);
+  this.amp.connect(this.hiPass);
 
-  for(o=0;o<this.osc.length;o++){
-    this.osc[o].start();
-  }
+  /* Connect the output of the filter to the speakers */
+  this.hiPass.connect(this.context.destination);
 
-  this.noise.start();
   this.amp.gain.value = mute;
   return "hihat";
 };
@@ -186,22 +140,17 @@ Clap = function(context){
 
 Clap.prototype.setup = function() {
   // White noise through a modulated bandpass filter
-
-  this.lfoAmount = this.context.createGain();
   this.noiseAmp = this.context.createGain();
+  this.lfoAmount = this.context.createGain();
   this.amp = this.context.createGain();
 
   this.noise = this.context.createBufferSource();
-  this.noise.buffer = noiseBuffer();
-  this.noise.connect(this.noiseAmp);
+  this.noise.buffer = whiteNoise();
   this.noise.loop = true;
-
-  this.lfo = this.context.createOscillator();
-  this.lfo.type = 'triangle';
-  this.lfo.frequency.value = 3;
-  this.lfo.start();
-
-  this.lfoAmount.gain.value = 50;
+  this.noise.connect(this.noiseAmp);
+  this.noiseAmp.gain.value = 1;
+  this.noise.connect(this.noiseAmp);
+  this.noise.start();
 
   this.bandPass = this.context.createBiquadFilter();
   this.bandPass.type = 'bandpass';
@@ -209,21 +158,26 @@ Clap.prototype.setup = function() {
   this.bandPass.gain.value = 3;
   this.bandPass.Q.value = 4;
 
-  this.noiseAmp.connect(this.amp);
-
-  this.amp.connect(this.bandPass);
+  this.lfo = this.context.createOscillator();
+  this.lfo.type = 'triangle';
+  this.lfo.frequency.value = 3;
+  this.lfoAmount.gain.value = 50;
 
   this.lfo.connect(this.lfoAmount);
+  this.lfoAmount.connect(this.bandPass.frequency);
+  this.lfo.start();
+
+  this.noiseAmp.connect(this.amp);
+  this.amp.connect(this.bandPass);
 
   this.bandPass.connect(this.context.destination);
 
-  this.lfoAmount.connect(this.bandPass.frequency);
-
-  this.noise.start();
-
   this.amp.gain.value = mute;
   return "handclap";
+};
 
+Clap.prototype.shortToGround = function(){
+  this.amp.gain.value = 0.2;
 };
 
 Clap.prototype.trigger = function(time){
@@ -239,7 +193,6 @@ Clap.prototype.trigger = function(time){
   this.amp.gain.setValueAtTime(1, time + (3*clapTriggerTime));
   this.amp.gain.exponentialRampToValueAtTime(mute, time + 0.68);
 };
-
 
 function Kick(context) {
   this.context = context;
@@ -278,8 +231,10 @@ var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
   var clap = new Clap(context);
   var hihat = new HiHat(context);
-  //hihat.setup();
-  //clap.setup();
+
+  // hihat.setup();
+  // clap.setup();
+
   circuitScores = circuits;
 
   Tone.Transport.bpm.value = tempo;
