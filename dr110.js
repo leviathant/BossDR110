@@ -235,16 +235,7 @@ handle_keydown = function(e){
 
 playFile = function(filename, withAccent){
 	if(filename == instruments[3] || filename == instruments[4] || filename == instruments[7]){ // Handle hihats as best as I can
-		hihat_audio.pause();
-		hihat_audio = new Audio();
-		if(is_chrome){
-			hihat_audio.src = './audio/' + filename + '.mp3';
-		}
-		else{
-			hihat_audio.src = './audio/' + filename + '.wav';
-		}
-		hihat_audio.volume = (withAccent) ? volume+accent : volume;
-		hihat_audio.play();
+		hihat.trigger(context.currentTime + 0.30, filename);
 	}
 	else{
 		var audio = new Audio();
@@ -646,6 +637,11 @@ $(document).ready(function(){
 
 	$("#knobTempo").css('-moz-transform','rotate(-232deg)');
 	$("#knobTempo").css('-webkit-transform','rotate(-232deg)');
+	kick  = new Kick(context);
+  clap = new Clap(context);
+  hihat = new HiHat(context);
 
+  hihat.setup();
+  clap.setup();
 });
 

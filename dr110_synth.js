@@ -119,13 +119,13 @@ HiHat.prototype.shortToGround = function(){
 
 HiHat.prototype.trigger = function(time, type){
   switch(type){
-    case 'open':
+    case 'OpenHihat':
       this.duration = 0.7;
     break;
-    case 'closed':
+    case 'ClosedHihat':
       this.duration = 0.08;
     break;
-    case 'pedaled':
+    case 'PedalHat':
       this.duration = 0.2;
     break;
   }
@@ -232,8 +232,8 @@ var sequence_to_tone = function(seq) {
   var clap = new Clap(context);
   var hihat = new HiHat(context);
 
-  // hihat.setup();
-  // clap.setup();
+  hihat.setup();
+  clap.setup();
 
   circuitScores = circuits;
 
@@ -273,11 +273,11 @@ var sequence_to_tone = function(seq) {
   });
 
   Tone.Note.route('OH', function(time){
-    hihat.trigger(time, 'open');
+    hihat.trigger(time, 'OpenHihat');
   });
 
   Tone.Note.route('CH', function(time){
-    hihat.trigger(time,'closed');
+    hihat.trigger(time,'ClosedHihat');
   });
 
   Tone.Note.route('PH', function(time){
