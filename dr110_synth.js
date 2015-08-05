@@ -5,9 +5,11 @@ AudioBuffer > AudioBufferSourceNode
 
 osc -> masterGain -> Filter -> Gain -> Destination
 
+hihat = new HiHat(context); hihat.setup(context); hihat.shortToGround(context);
 */
-hh1 = [880, 1160, 3280, 2250];
+hh1 = [880, 1160, 3280, 2250]; //Cymbal frequencies?
 hh2 = [870, 1220, 3150, 2150];
+hh3 = [465, 317, 820, 1150];
 /*
 HH OSC
 0.88ms
@@ -79,7 +81,7 @@ var snareDecay = 0.1;
 var kickDecay = 0.5; // 0.1?
 var openHatDecay = 0.7;
 var closedHatDecay = 0.08;
-var mute = 0.001;
+var mute = 0.00001;
 
 noiseBuffer = function() {
   var bufferSize = this.context.sampleRate;
@@ -100,15 +102,26 @@ HiHat = function(context) {
 HiHat.prototype.setup = function(){
   //Four oscillators, mixed down
   //Noise, at its own volume
-  //All filtered
+  //All bandpass filtered, LFO on the bandpass frequency
+
   this.noiseAmp = this.context.createGain();
   this.oscMixer = this.context.createGain();
-  this.amp = this.context.createGain();      // Initialize amplifier
+  this.lfoAmount = this.context.createGain();
+  this.amp = this.context.createGain();
 
   this.noise = this.context.createBufferSource(); // Init sample
   this.noise.buffer = noiseBuffer();              // Sample noise
-  this.noise.connect(this.noiseAmp);                // Route noise source to amp
-  this.noiseAmp.gain.value = 0.5;
+  this.noise.connect(this.noiseAmp);              // Route noise source to amp
+  this.noise.loop = true;
+
+  this.noiseAmp.gain.value = 1;
+
+  this.lfo = this.context.createOscillator();
+  this.lfo.type = 'sine';
+  this.lfo.frequency.value = 4 ;
+  this.lfo.start();
+
+  this.lfoAmount.gain.value = 300;
 
   this.osc = [];
   for(o=0;o<=3;o++){
@@ -120,7 +133,7 @@ HiHat.prototype.setup = function(){
 
   this.hiPass = this.context.createBiquadFilter();
   this.hiPass.type = 'highpass';
-  this.hiPass.frequency.value = 7000;
+  this.hiPass.frequency.value = 8000;
   this.hiPass.gain.value = 2;
   this.hiPass.Q.value = 8;
 
@@ -128,11 +141,30 @@ HiHat.prototype.setup = function(){
   this.oscMixer.connect(this.amp);
   this.amp.connect(this.hiPass);
 
+  this.lfo.connect(this.lfoAmount);
+
   this.hiPass.connect(this.context.destination);// Connect amp to output
+
+  this.lfoAmount.connect(this.hiPass.frequency);
+
+  for(hho = 0; hho < 4; hho++){
+    this.osc[hho].frequency.value = hh1[hho]; //hh2 alt frequencies
+  }
+
+  for(o=0;o<this.osc.length;o++){
+    this.osc[o].start();
+  }
+
+  this.noise.start();
+  this.amp.gain.value = mute;
+  return "hihat";
+};
+
+HiHat.prototype.shortToGround = function(){
+  this.amp.gain.value = 0.2;
 };
 
 HiHat.prototype.trigger = function(time, type){
-  this.setup();
 
   switch(type){
     case 'open':
@@ -146,20 +178,8 @@ HiHat.prototype.trigger = function(time, type){
     break;
   }
 
-  for(hho = 0; hho < 4; hho++){
-    this.osc[hho].frequency.value = hh1[hho]; //hh2 alt frequencies
-  }
-  this.amp.gain.value = 0.5;
-
-  this.noise.start(time);
-  this.noise.stop(time + this.duration);
-
-  for(o=0;o<this.osc.length;o++){
-    this.osc[o].start(time);
-    this.osc[o].stop(time + this.duration);
-  }
+  this.amp.gain.setValueAtTime(0.5, time);
   this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
-  console.log("OHH");
 };
 
 Clap = function(context){
@@ -226,13 +246,7 @@ Kick.prototype.trigger = function(time) {
   this.osc.start(time);
 
   this.osc.stop(time + 0.5);
-  // var audio = new Audio();
-  // audio.src = './audio/BassDrum.wav';
-  // audio.volume = 0.8;//(withAccent) ? volume + accent : volume;
-  // audio.play();
 };
-
-
 
 var sixteenths = [
   "0:0", "0:0:1","0:0:2","0:0:3",
@@ -247,6 +261,7 @@ var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
   var clap = new Clap(context);
   var hihat = new HiHat(context);
+  hihat.setup();
   circuitScores = circuits;
 
   Tone.Transport.bpm.value = tempo;
@@ -257,25 +272,18 @@ var sequence_to_tone = function(seq) {
     Score[circuitScores[circuit]]=[];
   }
 
+
   for(i=1; i<=seq.pattern_length; i++){
 
     for (var key in seq){
 
       if(key.length == 2){
-
-        if(key == "CH" || key == "OH"){
-          if(seq.CH[i]==1){
-            if(seq.OH[i]==1){                 // Pedal the hat
-              Score.PH.push(sixteenths[i-1]);
-            }
-            else{
-
-              Score.CH.push(sixteenths[i-1]);
-            }
+        if(key == "CH"){
+          if(seq[key][i]==1 && seq["OH"][i] == 1){
+            Score["PH"].push(sixteenths[i-1]);
           }
-
-          if(seq.OH[i]==1 && seq.CH[i]===0){  //Only open if not also closed.
-            Score.OH.push(sixteenths[i-1]);
+          else{
+            Score[key].push(sixteenths[i-1]);
           }
         }
         else{
@@ -286,47 +294,12 @@ var sequence_to_tone = function(seq) {
       }
     }
   }
-  //   }
-  //   if(seq.BD[i]==1){
-  //    Score.BD.push(sixteenths[i-1]);
-  //   }
-
-  //   if(seq.SD[i]==1){
-  //    Score.SD.push(sixteenths[i-1]);
-  //   }
-
-  //   if(seq.CH[i]==1){
-  //     if(seq.OH[i]==1){                 // Pedal the hat
-  //       Score.PH.push(sixteenths[i-1]);
-  //     }
-  //     else{
-  //       Score.CH.push(sixteenths[i-1]);
-  //     }
-  //   }
-
-  //   if(seq.OH[i]==1 && seq.CH[i]===0){  //Only open if not also closed.
-  //    Score.OH.push(sixteenths[i-1]);
-  //   }
-
-  //   if(seq.CP[i]==1){
-  //    Score.CP.push(sixteenths[i-1]);
-  //   }
-
-  //   if(seq.CY[i]==1){
-  //    Score.CY.push(sixteenths[i-1]);
-  //   }
-
-  //   if(seq.BD[i]==1){
-  //    Score.BD.push(sixteenths[i-1]);
-  //   }
-  // }
 
   Tone.Note.route('BD', function(time){
     kick.trigger(time);
   });
 
   Tone.Note.route('OH', function(time){
-    console.log("Trigger OH");
     hihat.trigger(time, 'open');
   });
 
@@ -334,7 +307,7 @@ var sequence_to_tone = function(seq) {
     hihat.trigger(time,'closed');
   });
 
-  Tone.Note.route('OH', function(time){
+  Tone.Note.route('PH', function(time){
     hihat.trigger(time, 'pedaled');
   });
 
