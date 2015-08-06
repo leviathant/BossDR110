@@ -1,5 +1,6 @@
 /*
 hihat = new HiHat(context); hihat.setup(context); hihat.shortToGround(context);
+hihat = new HiHat(context); hihat.setup(context); hihat.trigger(context.currentTime);
 */
 
 /*
@@ -17,13 +18,26 @@ exportSeq = JSON.stringify(sequences) // Export sequences
 importSeq = JSON.parse(sj) ; // Import into sequences
 */
 
+var context = new AudioContext();
+
+var clapTriggerTime = 0.01;
+var snareDecay = 0.1;
+var kickDecay = 0.5; // 0.1?
+var mute = 0.00001;
+
 hh1 = [880, 1160, 3280, 2250]; //Cymbal frequencies?
 hh2 = [870, 1220, 3150, 2150];
 hh3 = [465, 317, 820, 1150];
 
-// 1150hz + 820hz = hihat?
-// 465hz = cy ping?
-// 317hz = cy body?
+var sixteenths = [
+  "0:0", "0:0:1","0:0:2","0:0:3",
+  "0:1", "0:1:1","0:1:2","0:1:3",
+  "0:2", "0:2:1","0:2:2","0:2:3",
+  "0:3", "0:3:1","0:3:2","0:3:3"
+  ];
+
+var Score = {};
+
 
 /*
 HH OSC
@@ -52,15 +66,13 @@ TestPoint   Time  Voltage   Voice(?)
 
 Handclap Retrigger Time:
 10 10ms x3
+
+White Noise @ 1/3 level of oscillators
+
+Cymbal combines two envelopes... one steep, one slow.
 */
 
 // Based on values from schemes, needs to be compared to samples
-var context = new AudioContext();
-
-var clapTriggerTime = 0.01;
-var snareDecay = 0.1;
-var kickDecay = 0.5; // 0.1?
-var mute = 0.00001;
 
 whiteNoise = function() {
   var bufferSize = this.context.sampleRate;
@@ -92,11 +104,11 @@ HiHat.prototype.setup = function(){
   this.noiseAmp.gain.value = 1;                     // and turn CA level up.
   this.noise.start();
 
-  /* Generate four oscillators, mix them together, set combined volume */
+  /* Generate two oscillators, mix them together, set combined volume */
   this.osc = [];
   for(o=0;o<=1;o++){
     this.osc[o] = this.context.createOscillator();
-    this.osc[o].type = 'square';
+    this.osc[o].type = "square";
     this.osc[o].frequency.value = hh3[o];
     this.osc[o].connect(this.oscillatorSubmix);
     this.osc[o].start();
@@ -105,14 +117,14 @@ HiHat.prototype.setup = function(){
 
   /* Filter configuration */
   this.hiPass = this.context.createBiquadFilter();
-  this.hiPass.type = 'highpass';
+  this.hiPass.type = "highpass";
   this.hiPass.frequency.value = 7500;
   this.hiPass.gain.value = 2;
   this.hiPass.Q.value = 8;
 
   /* A free-running LFO modulates sound independent of tempo */
   this.lfo = this.context.createOscillator();
-  this.lfo.type = 'triangle';
+  this.lfo.type = "triangle";
   this.lfo.frequency.value = 4 ;
   this.lfoAmount.gain.value = 300;
 
@@ -138,13 +150,13 @@ HiHat.prototype.shortToGround = function(){
 
 HiHat.prototype.trigger = function(time, type){
   switch(type){
-    case 'OpenHihat':
+    case "OpenHihat":
       this.duration = 1.7;
     break;
-    case 'ClosedHihat':
+    case "ClosedHihat":
       this.duration = 0.3;
     break;
-    case 'PedalHat':
+    case "PedalHat":
       this.duration = 0.2;
     break;
   }
@@ -158,7 +170,7 @@ Cymbal = function(context){
 };
 
 Cymbal.prototype.setup = function(){
-this.duration = 1.5;
+  this.duration = 1.5;
 
   this.noiseAmp = this.context.createGain();
   this.pingSubmix = this.context.createGain();
@@ -177,33 +189,39 @@ this.duration = 1.5;
   this.osc = [];
   for(o=0;o<=3;o++){
     this.osc[o] = this.context.createOscillator();
-    this.osc[o].type = 'square';
+    this.osc[o].type = "square";
     this.osc[o].frequency.value = hh3[o];
     //this.osc[o].connect(this.oscillatorSubmix);
     this.osc[o].start();
   }
 
+  /* The ride cymbal employs multiple envelopes */
+  this.osc[0].connect(this.pingSubmix);
+  this.osc[1].connect(this.bodySubmix);
   this.osc[2].connect(this.bellSubmix);
   this.osc[3].connect(this.bellSubmix);
-
-  this.osc[0].connect(this.pingSubmix);
-
-  this.osc[1].connect(this.bodySubmix);
 
   this.pingSubmix.gain.value = 1;
   this.bodySubmix.gain.value = 1;
   this.bellSubmix.gain.value = 1;
 
-  /* Filter configuration */
+  /* Filter 1 configuration */
   this.hiPass = this.context.createBiquadFilter();
-  this.hiPass.type = 'highpass';
+  this.hiPass.type = "highpass";
   this.hiPass.frequency.value = 7500;
   this.hiPass.gain.value = 2;
   this.hiPass.Q.value = 8;
 
+  /* Filter/Phaser configuration */
+  this.bandPass = this.context.createBiquadFilter();
+  this.bandPass.type = "bandpass";
+  this.bandPass.frequency.value = 7500;
+  this.bandPass.gain.value = 2;
+  this.bandPass.Q.value = 8;
+
   /* A free-running LFO modulates sound independent of tempo */
   this.lfo = this.context.createOscillator();
-  this.lfo.type = 'triangle';
+  this.lfo.type = "triangle";
   this.lfo.frequency.value = 4 ;
   this.lfoAmount.gain.value = 300;
 
@@ -216,14 +234,14 @@ this.duration = 1.5;
   this.pingSubmix.connect(this.amp);
   this.bellSubmix.connect(this.amp);
   this.bodySubmix.connect(this.amp);
-  this.amp.connect(this.hiPass);
+  this.amp.connect(this.bandPass);
+  this.bandPass.connect(this.hiPass);
 
   /* Connect the output of the filter to the speakers */
   this.hiPass.connect(this.context.destination);
 
   this.amp.gain.value = mute;
   return "cymbal";
-
 };
 
 Cymbal.prototype.shortToGround = function(){
@@ -236,6 +254,7 @@ Cymbal.prototype.trigger = function(time) {
   this.bellSubmix.gain.setValueAtTime(1,time);
   this.bodySubmix.gain.setValueAtTime(1,time);
 
+  /* Ramp differently for ping, bell, body */
   this.amp.gain.exponentialRampToValueAtTime(mute, time + 3);
   //this.pingSubmix.gain.exponentialRampToValueAtTime(mute, time + 6);
    this.bellSubmix.gain.exponentialRampToValueAtTime(mute, time + 1.5);
@@ -262,13 +281,13 @@ Clap.prototype.setup = function() {
   this.noise.start();
 
   this.bandPass = this.context.createBiquadFilter();
-  this.bandPass.type = 'bandpass';
+  this.bandPass.type = "bandpass";
   this.bandPass.frequency.value = 1000;
   this.bandPass.gain.value = 3;
   this.bandPass.Q.value = 4;
 
   this.lfo = this.context.createOscillator();
-  this.lfo.type = 'triangle';
+  this.lfo.type = "triangle";
   this.lfo.frequency.value = 3;
   this.lfoAmount.gain.value = 50;
 
@@ -320,21 +339,13 @@ Kick.prototype.trigger = function(time) {
   this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
   this.amp.gain.setValueAtTime(1, time);        // Set osc volume
 
-  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-  this.amp.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + kickDecay);
+  this.amp.gain.exponentialRampToValueAtTime(0.01, time + kickDecay);
 
   this.osc.start(time);
   this.osc.stop(time + 0.5);
 };
 
-var sixteenths = [
-  "0:0", "0:0:1","0:0:2","0:0:3",
-  "0:1", "0:1:1","0:1:2","0:1:3",
-  "0:2", "0:2:1","0:2:2","0:2:3",
-  "0:3", "0:3:1","0:3:2","0:3:3"
-  ];
-
-var Score = {};
 
 var sequence_to_tone = function(seq) {
   var kick  = new Kick(context);
@@ -379,20 +390,20 @@ var sequence_to_tone = function(seq) {
     }
   }
 
-  Tone.Note.route('BD', function(time){
+  Tone.Note.route("BD", function(time){
     kick.trigger(time);
   });
 
-  Tone.Note.route('OH', function(time){
-    hihat.trigger(time, 'OpenHihat');
+  Tone.Note.route("OH", function(time){
+    hihat.trigger(time, "OpenHihat");
   });
 
-  Tone.Note.route('CH', function(time){
-    hihat.trigger(time,'ClosedHihat');
+  Tone.Note.route("CH", function(time){
+    hihat.trigger(time,"ClosedHihat");
   });
 
-  Tone.Note.route('PH', function(time){
-    hihat.trigger(time, 'pedaled');
+  Tone.Note.route("PH", function(time){
+    hihat.trigger(time, "pedaled");
   });
 
   Tone.Note.route("CP", function(time){

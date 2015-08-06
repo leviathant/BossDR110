@@ -3,7 +3,7 @@
 
 //Todo: Accent & Balance
 var clicking = false;
-var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1; //Todo: Check features, not browsers.
+var is_chrome = navigator.userAgent.toLowerCase().indexOf("chrome") > -1; //Todo: Check features, not browsers.
 
 var songs = {};
 var sequences = {};
@@ -63,7 +63,7 @@ stopBeat = function(){
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
 	resetStep();
-	Tone.Transport.stop(); // Tone doesn't restart in Firefox?
+	Tone.Transport.stop(); // Tone doesn"t restart in Firefox?
 };
 
 staticTempoBeat = function(){
@@ -84,30 +84,30 @@ staticTempoBeat = function(){
 };
 
 mode = {
-	1:'Song Play',
-	2:'Pattern Play',
-	3:'Song Write',
-	4:'Step Write',
-	5:'Tap Write'
+	1:"Song Play",
+	2:"Pattern Play",
+	3:"Song Write",
+	4:"Step Write",
+	5:"Tap Write"
 };
 
 instruments = {
-	0:'Accent',
-	1:'BassDrum',
-	2:'SnareDrum',
-	3:'OpenHihat',
-	4:'ClosedHihat',
-	5:'Cymbal',
-	6:'HandClap',
-	7:'PedalHat' //Only occurs when open and closed hats are triggered simultaneously
+	0:"Accent",
+	1:"BassDrum",
+	2:"SnareDrum",
+	3:"OpenHihat",
+	4:"ClosedHihat",
+	5:"Cymbal",
+	6:"HandClap",
+	7:"PedalHat" //Only occurs when open and closed hats are triggered simultaneously
 };
 
 
 initialize = function(){
-	$('#bank').html(String.fromCharCode(65+bank));
-	$('#mode').html(mode[selected_mode]);
-	$('#song').html((song == 1) ? "I" : "II");
-	$('#pattern').html(active_pattern_number);
+	$("#bank").html(String.fromCharCode(65+bank));
+	$("#mode").html(mode[selected_mode]);
+	$("#song").html((song == 1) ? "I" : "II");
+	$("#pattern").html(active_pattern_number);
 	updateSequenceDisplay();
 };
 
@@ -165,7 +165,7 @@ handle_keydown = function(e){
 	var code;
 	if (!e) e = window.event;
 	if (e.shiftKey == 1){
-        $("#butShift").trigger('click');
+        $("#butShift").trigger("click");
     }
 	if (e.keyCode) {
 		code = e.keyCode;
@@ -174,60 +174,60 @@ handle_keydown = function(e){
 		code = e.which;
 	}
 	if(code == 192){
-		$("#butABCD").trigger('click');
+		$("#butABCD").trigger("click");
 	}
 	var character = String.fromCharCode(code);
 	switch(character){
-		case '1':
-			$("#but1").trigger('click');
+		case "1":
+			$("#but1").trigger("click");
 		break;
-		case '2':
-			$("#but2").trigger('click');
+		case "2":
+			$("#but2").trigger("click");
 		break;
-		case '3':
-			$("#but3").trigger('click');
+		case "3":
+			$("#but3").trigger("click");
 		break;
-		case '4':
-			$("#but4").trigger('click');
+		case "4":
+			$("#but4").trigger("click");
 		break;
-		case '5':
-			$("#but5").trigger('click');
+		case "5":
+			$("#but5").trigger("click");
 		break;
-		case '6':
-			$("#but6").trigger('click');
+		case "6":
+			$("#but6").trigger("click");
 		break;
-		case '7':
-			$("#but7").trigger('click');
+		case "7":
+			$("#but7").trigger("click");
 		break;
-		case '8':
-			$("#but8").trigger('click');
+		case "8":
+			$("#but8").trigger("click");
 		break;
-		case '9':
-			$('#butStart').trigger('click');
+		case "9":
+			$("#butStart").trigger("click");
 		break;
-		case '0':
-			$('#butStop').trigger('click');
+		case "0":
+			$("#butStop").trigger("click");
 		break;
-		case 'Z':
-			$("#butAccent").trigger('click');
+		case "Z":
+			$("#butAccent").trigger("click");
 		break;
-		case 'X':
-			$("#butBassDrum").trigger('click');
+		case "X":
+			$("#butBassDrum").trigger("click");
 		break;
-		case 'C':
-			$("#butSnareDrum").trigger('click');
+		case "C":
+			$("#butSnareDrum").trigger("click");
 		break;
-		case 'V':
-			$("#butOhihat").trigger('click');
+		case "V":
+			$("#butOhihat").trigger("click");
 		break;
-		case 'B':
-			$("#butChihat").trigger('click');
+		case "B":
+			$("#butChihat").trigger("click");
 		break;
-		case 'N':
-			$("#butCymbal").trigger('click');
+		case "N":
+			$("#butCymbal").trigger("click");
 		break;
-		case 'M':
-			$("#butHandClap").trigger('click');
+		case "M":
+			$("#butHandClap").trigger("click");
 		break;
 
 	}
@@ -240,10 +240,10 @@ playFile = function(filename, withAccent){
 	else{
 		var audio = new Audio();
 		if(is_chrome){
-			audio.src = './audio/' +  filename + '.mp3';
+			audio.src = "./audio/" +  filename + ".mp3";
 		}
 		else{
-			audio.src = './audio/' +  filename + '.wav';
+			audio.src = "./audio/" +  filename + ".wav";
 		}
 		audio.volume = (withAccent) ? volume + accent : volume;
 		audio.play();
@@ -254,14 +254,14 @@ playFile = function(filename, withAccent){
 
 numberButton = function(number){
 	if(number == 6){
-		$('#but' + number).bind('click', function(event) {
+		$("#but" + number).bind("click", function(event) {
 			if(shiftEngaged){
 				pattern_length = (pattern_length == 16) ? 12 : 16;
 				if(pattern_length == 16){
-					$("#pattern_length").css('left','360px');
+					$("#pattern_length").css("left","360px");
 				}
 				else{
-					$("#pattern_length").css('left','300px');
+					$("#pattern_length").css("left","300px");
 				}
 
 				active_sequence.pattern_length = pattern_length;
@@ -273,11 +273,11 @@ numberButton = function(number){
 		});
 	}
 	else{
-		$('#but' + number).bind('click', function(event) {
+		$("#but" + number).bind("click", function(event) {
 			if(shiftEngaged){
 				if(number < 6){
-					$('#mode').removeClass();
-					$('#mode').addClass('posA' + number);
+					$("#mode").removeClass();
+					$("#mode").addClass("posA" + number);
 					selected_mode = number;
 				}
 			}
@@ -308,13 +308,13 @@ createKnob = function(knobType){
 	$("#" + knobType + "Control").mousedown( function( eventObj ) {
 		clicking = true;
 		$("#" + knobType + "Control").height("300px");
-		$("#" + knobType + "Control").css('top',$("#knob" + knobType.capitalize()).offset().top - 190 + "px");
+		$("#" + knobType + "Control").css("top",$("#knob" + knobType.capitalize()).offset().top - 190 + "px");
 	});
 	$("#" + knobType + "Control").mouseup(function( eventObj ) {
 		clicking = false;
 		$("#" + knobType + "Control").height("60px");
-		$("#" + knobType + "Control").css('top',$("#knob" + knobType.capitalize()).offset().top - 83 + "px");
-		$('#device').focus(); //Trying to fix knob drag issue.
+		$("#" + knobType + "Control").css("top",$("#knob" + knobType.capitalize()).offset().top - 83 + "px");
+		$("#device").focus(); //Trying to fix knob drag issue.
 	});
 };
 
@@ -327,9 +327,9 @@ assignKnob = function(knobType, knobFunction){
 		var pct = currentValue/maxValue * 100;
 		var rot = 360 * currentValue/maxValue;
 		if(pct > knobMin && currentValue/maxValue * 100 < knobMax){
-			eval(knobFunction + '(' + pct + ')');
-			$("#knob" + knobType.capitalize()).css('-moz-transform','rotate(-' + rot +'deg)');
-			$("#knob" + knobType.capitalize()).css('-webkit-transform','rotate(-' + rot +'deg)');
+			eval(knobFunction + "(" + pct + ")");
+			$("#knob" + knobType.capitalize()).css("-moz-transform","rotate(-" + rot +"deg)");
+			$("#knob" + knobType.capitalize()).css("-webkit-transform","rotate(-" + rot +"deg)");
 		}
 	});
 };
@@ -413,7 +413,7 @@ $(document).ready(function(){
 	initialize();
 
 	{ // Grouping buttons 7,8
-		$('#but7').bind('click', function(event) {
+		$("#but7").bind("click", function(event) {
 			if(shiftEngaged){	//Clear pattern - TODO: Verify clear in play mode is correct
 				for(circuit = 1; circuit < 7; circuit++){
 					for(_step = 1; _step <= maxSteps; _step++){
@@ -430,7 +430,7 @@ $(document).ready(function(){
 			initialize();
 		});
 
-		$('#but8').bind('click', function(event) {
+		$("#but8").bind("click", function(event) {
 			if(shiftEngaged){
 				//TODO:Reset Measure [SONG MODE]
 			}
@@ -443,32 +443,32 @@ $(document).ready(function(){
 
 	{ // Grouping shift, abcd, start, stop
 
-		$('#butShift').bind('click', function(event) {
-			$('#butShift').toggleClass('engaged');
+		$("#butShift").bind("click", function(event) {
+			$("#butShift").toggleClass("engaged");
 			shiftEngaged = (shiftEngaged) ? false : true;
 		});
 
-		$('#butABCD').bind('click', function(event){
+		$("#butABCD").bind("click", function(event){
 			if(shiftEngaged){
 				song = (song == 1) ? 2 : 1;
-				$('#song').removeClass();
-				$('#song').addClass('song' + song);
+				$("#song").removeClass();
+				$("#song").addClass("song" + song);
 			}
 			else{
-				$('#bank').removeClass('pos' + (bank+1));
+				$("#bank").removeClass("pos" + (bank+1));
 				sequences[banks[bank][active_pattern_number]] = active_sequence;
 				bank++;
 				if(bank > 3){
 					bank = 0;
 				}
-				$('#bank').addClass('pos' + (bank+1));
+				$("#bank").addClass("pos" + (bank+1));
 				active_sequence = sequences[banks[bank]][active_pattern_number];
 				pattern_length = sequences[banks[bank]][active_pattern_number].pattern_length;
 			}
 			initialize();
 		});
 
-		$('#butStart').bind('click', function(event){
+		$("#butStart").bind("click", function(event){
 			switch(selected_mode){
 				case 1:
 					// start sequence playback
@@ -491,7 +491,7 @@ $(document).ready(function(){
 				}
 		});
 
-		$('#butStop').bind('click', function(event){
+		$("#butStop").bind("click", function(event){
 			switch(selected_mode){
 				case 1:
 					// stop sequence playback
@@ -515,7 +515,7 @@ $(document).ready(function(){
 	}
 
 	{ // Grouping instrument button functions
-		$('#butBassDrum').bind('click', function(event) {
+		$("#butBassDrum").bind("click", function(event) {
 			selected_instrument = 1;
 			if(selected_mode > 3){
 				send_trigger();
@@ -536,7 +536,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$('#butAccent').bind('click', function(event) {
+		$("#butAccent").bind("click", function(event) {
 			selected_instrument = 0;
 			sharedDisplayInstrument = selected_instrument;
 			if(selected_mode > 3){
@@ -550,7 +550,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$('#butSnareDrum').bind('click', function(event) {
+		$("#butSnareDrum").bind("click", function(event) {
 			selected_instrument = 2;
 			if(selected_mode > 3){
 				send_trigger();
@@ -571,7 +571,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$('#butOhihat').bind('click', function(event) {
+		$("#butOhihat").bind("click", function(event) {
 			selected_instrument = 3;
 			if(selected_mode > 3){
 				send_trigger();
@@ -588,7 +588,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$('#butChihat').bind('click', function(event) {
+		$("#butChihat").bind("click", function(event) {
 			selected_instrument = 4;
 			if(selected_mode > 3){
 				send_trigger();
@@ -605,7 +605,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$('#butCymbal').bind('click', function(event) {
+		$("#butCymbal").bind("click", function(event) {
 			selected_instrument = 5;
 			sharedDisplayInstrument = selected_instrument;
 			if(selected_mode > 3){
@@ -619,7 +619,7 @@ $(document).ready(function(){
 				initialize();
 			}
 		});
-		$('#butHandClap').bind('click', function(event) {
+		$("#butHandClap").bind("click", function(event) {
 			selected_instrument = 6;
 			sharedDisplayInstrument = selected_instrument;
 			if(selected_mode > 3){
@@ -635,8 +635,8 @@ $(document).ready(function(){
 		});
 	}
 
-	$("#knobTempo").css('-moz-transform','rotate(-232deg)');
-	$("#knobTempo").css('-webkit-transform','rotate(-232deg)');
+	$("#knobTempo").css("-moz-transform","rotate(-232deg)");
+	$("#knobTempo").css("-webkit-transform","rotate(-232deg)");
 	kick  = new Kick(context);
   clap = new Clap(context);
   hihat = new HiHat(context);
