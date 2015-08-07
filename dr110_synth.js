@@ -38,7 +38,6 @@ var sixteenths = [
 
 var Score = {};
 
-
 /*
 HH OSC
 0.88ms
@@ -69,7 +68,7 @@ Handclap Retrigger Time:
 
 White Noise @ 1/3 level of oscillators
 
-Cymbal combines two envelopes... one steep, one slow.
+Cymbal combines two envelopes for VCA one steep, one slow
 */
 
 // Based on values from schemes, needs to be compared to samples
@@ -254,6 +253,10 @@ Cymbal.prototype.trigger = function(time) {
   this.bellSubmix.gain.setValueAtTime(1,time);
   this.bodySubmix.gain.setValueAtTime(1,time);
 
+  /* Steep envelope 60ms, mixed with 900ms low envelope on metal */
+  /* Steep envelope is 10x the value of the low envelope */
+  /* 1400ms envelope for the filtered noise */
+
   /* Ramp differently for ping, bell, body */
   this.amp.gain.exponentialRampToValueAtTime(mute, time + 3);
   //this.pingSubmix.gain.exponentialRampToValueAtTime(mute, time + 6);
@@ -347,18 +350,42 @@ Kick.prototype.trigger = function(time) {
 };
 
 
-var sequence_to_tone = function(seq) {
-  var kick  = new Kick(context);
-  var clap = new Clap(context);
-  var hihat = new HiHat(context);
-  var cymbal = new Cymbal(context);
 
-  hihat.setup();
-  clap.setup();
-  cymbal.setup();
+function Snare(context) {
+  this.context = context;
+}
+
+Snare.prototype.setup = function() {
+  this.osc = this.context.createOscillator(); // Initialize noise source
+  this.amp = this.context.createGain();      // Initialize amplifier
+  this.osc.connect(this.amp);                // Route noise source to amp
+  this.amp.connect(this.context.destination);// Connect amp to output
+
+  this.noise = this.context.createBufferSource();   // Allocate sample space,
+  this.noise.buffer = whiteNoise();                 // sample some noise,
+  this.noise.loop = true;                           // loop the noise sample,
+  this.noise.connect(this.amp);                // and route the audio to CA
+  this.noise.start();
+
+  this.amp.gain.value = 0.0;                     // and turn CA level up.
+};
+
+Snare.prototype.trigger = function(time){
+  this.setup();
+
+  this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
+  this.amp.gain.setValueAtTime(1, time);        // Set osc volume
+
+  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + kickDecay);
+  this.amp.gain.exponentialRampToValueAtTime(mute, time + kickDecay);
+
+  this.osc.start(time);
+  this.osc.stop(time + 0.5);
+}
+
+var sequence_to_tone = function(seq) {
 
   circuitScores = circuits;
-
   Tone.Transport.bpm.value = tempo;
 
   circuitScores.push("PH"); //Add a track for the pedaled hat.
@@ -366,7 +393,6 @@ var sequence_to_tone = function(seq) {
   for(circuit=0; circuit<=circuitScores.length; circuit++){
     Score[circuitScores[circuit]]=[];
   }
-
 
   for(i=1; i<=seq.pattern_length; i++){
 
@@ -412,6 +438,10 @@ var sequence_to_tone = function(seq) {
 
   Tone.Note.route("CY", function(time){
     cymbal.trigger(time);
+  });
+
+  Tone.Note.route("SD", function(time){
+    snare.trigger(time);
   });
 
   Tone.Note.parseScore(Score);
