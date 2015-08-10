@@ -336,6 +336,7 @@ assignKnob = function(knobType, knobFunction){
 
 tempoFunction = function(pct){
 	tempo = Math.round((1 - pct / 100) * maxTempo);
+	Tone.Transport.bpm.value = tempo;
 	$("#tempo").text(tempo + " bpm" );
 };
 
