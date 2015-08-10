@@ -367,13 +367,23 @@ Snare.prototype.setup = function() {
   this.osc = this.context.createOscillator(); // Initialize noise source
   this.amp = this.context.createGain();      // Initialize amplifier
   this.osc.connect(this.amp);                // Route noise source to amp
-  this.amp.connect(this.context.destination);// Connect amp to output
+  //this.amp.connect(this.context.destination);// Connect amp to output
 
   this.noise = this.context.createBufferSource();   // Allocate sample space,
   this.noise.buffer = whiteNoise();                 // sample some noise,
   this.noise.loop = true;                           // loop the noise sample,
   this.noise.connect(this.amp);                // and route the audio to CA
   this.noise.start();
+
+  this.hiPass = this.context.createBiquadFilter();
+  this.hiPass.type = "highpass";
+  this.hiPass.frequency.value = 200;
+  this.hiPass.gain.value = 6;
+  this.hiPass.Q.value = 0;
+
+  this.amp.connect(this.hiPass);
+
+  this.hiPass.connect(this.context.destination);
 
   this.amp.gain.value = 0.0;                     // and turn CA level up.
 };
