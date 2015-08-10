@@ -23,7 +23,7 @@ var knobMax = 88;
 
 var volume = 0.8; /* 0-1 */
 var accent = 0.2; /* 0-1 */
-var rate = 15000/tempo;
+
 
 var selected_instrument = 1;
 
@@ -53,8 +53,6 @@ startBeat = function(){
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
 	resetStep();
-	rate = 15000/tempo;
-	//DR110HEART = setInterval("staticTempoBeat()",rate);
 	sequence_to_tone(sequences.A[1]);
 };
 
@@ -65,23 +63,6 @@ stopBeat = function(){
 	resetStep();
 	Tone.Transport.stop(); // Tone doesn"t restart in Firefox?
 };
-
-// staticTempoBeat = function(){
-// 	nextStep();
-// 	for(circuit = 0; circuit <= 6; circuit++){
-// 		if(active_sequence[circuits[circuit]][step] == 1){
-// 			if((circuits[circuit] == "OH") && (active_sequence["CH"][step] == 1)){
-// 				// Don't play the open hihat if it lands on the same beat as a closed hihat.
-// 			}
-// 			else if((circuits[circuit] == "CH") && (active_sequence["OH"][step] == 1)){
-// 				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
-// 			}
-// 			else{
-// 				playFile(instruments[circuit],(active_sequence[step]==1));
-// 			}
-// 		}
-// 	}
-// };
 
 mode = {
 	1:"Song Play",

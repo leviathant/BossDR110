@@ -170,7 +170,7 @@ HiHat.prototype.trigger = function(time, type){
     break;
   }
 
-  this.amp.gain.setValueAtTime(0.5 * (volume + accent), time);
+  this.amp.gain.setValueAtTime(0.5 * (volume * (1 + accent)), time);
   this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
 };
 
@@ -261,7 +261,7 @@ Cymbal.prototype.trigger = function(time) {
   this.pingSubmix.gain.setValueAtTime(0.5,time);
   this.bellSubmix.gain.setValueAtTime(1,time);
   this.bodySubmix.gain.setValueAtTime(1,time);
-  this.amp.gain.setValueAtTime(0.5 * (volume + accent), time);
+  this.amp.gain.setValueAtTime(0.5 * (volume * (1 + accent)), time);
 
   /* Steep envelope 60ms, mixed with 900ms low envelope on metal */
   /* Steep envelope is 10x the value of the low envelope */
@@ -324,14 +324,14 @@ Clap.prototype.shortToGround = function(){
 Clap.prototype.trigger = function(time){
 
   for(trigger = 0; trigger < 3; trigger++){
-    this.amp.gain.setValueAtTime(5 * (volume + accent), time + (trigger * clapTriggerTime));
+    this.amp.gain.setValueAtTime(5 * (volume * (1 + accent)), time + (trigger * clapTriggerTime));
     this.amp.gain.exponentialRampToValueAtTime(
       mute,
       time + ((trigger + 1) * clapTriggerTime)
       );
   }
 
-  this.amp.gain.setValueAtTime(1 * (volume + accent), time + (3*clapTriggerTime));
+  this.amp.gain.setValueAtTime(1 * (volume * (1 + accent)), time + (3*clapTriggerTime));
   this.amp.gain.exponentialRampToValueAtTime(mute, time + 0.68);
 };
 
@@ -350,7 +350,7 @@ Kick.prototype.trigger = function(time) {
   this.setup();
 
   this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
-  this.amp.gain.setValueAtTime(1 * (volume + accent), time);        // Set osc volume
+  this.amp.gain.setValueAtTime(1 * (volume * (1 + accent)), time);        // Set osc volume
 
   this.osc.frequency.exponentialRampToValueAtTime(0.01, time + kickDecay);
   this.amp.gain.exponentialRampToValueAtTime(0.01, time + kickDecay);
@@ -392,7 +392,7 @@ Snare.prototype.trigger = function(time){
   this.setup();
 
   this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
-  this.amp.gain.setValueAtTime(1 * (volume + accent), time);        // Set osc volume
+  this.amp.gain.setValueAtTime(1 * (volume * (1 + accent)), time);        // Set osc volume
 
   this.osc.frequency.exponentialRampToValueAtTime(0.01, time + kickDecay);
   this.amp.gain.exponentialRampToValueAtTime(mute, time + kickDecay);
