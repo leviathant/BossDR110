@@ -66,22 +66,22 @@ stopBeat = function(){
 	Tone.Transport.stop(); // Tone doesn"t restart in Firefox?
 };
 
-staticTempoBeat = function(){
-	nextStep();
-	for(circuit = 0; circuit <= 6; circuit++){
-		if(active_sequence[circuits[circuit]][step] == 1){
-			if((circuits[circuit] == "OH") && (active_sequence["CH"][step] == 1)){
-				// Don't play the open hihat if it lands on the same beat as a closed hihat.
-			}
-			else if((circuits[circuit] == "CH") && (active_sequence["OH"][step] == 1)){
-				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
-			}
-			else{
-				playFile(instruments[circuit],(active_sequence[step]==1));
-			}
-		}
-	}
-};
+// staticTempoBeat = function(){
+// 	nextStep();
+// 	for(circuit = 0; circuit <= 6; circuit++){
+// 		if(active_sequence[circuits[circuit]][step] == 1){
+// 			if((circuits[circuit] == "OH") && (active_sequence["CH"][step] == 1)){
+// 				// Don't play the open hihat if it lands on the same beat as a closed hihat.
+// 			}
+// 			else if((circuits[circuit] == "CH") && (active_sequence["OH"][step] == 1)){
+// 				playFile(instruments[7],(active_sequence[step]==1)); // Play the pedal hat
+// 			}
+// 			else{
+// 				playFile(instruments[circuit],(active_sequence[step]==1));
+// 			}
+// 		}
+// 	}
+// };
 
 mode = {
 	1:"Song Play",
@@ -361,7 +361,7 @@ resetSequence = function(){
 };
 
 send_trigger = function(){
-	playFile(instruments[selected_instrument], false);
+	eval(instruments[selected_instrument]).trigger(context.currentTime);
 };
 
 
@@ -638,17 +638,17 @@ $(document).ready(function(){
 	$("#knobTempo").css("-moz-transform","rotate(-232deg)");
 	$("#knobTempo").css("-webkit-transform","rotate(-232deg)");
 
-	kick  = new Kick(context);
-  clap = new Clap(context);
-  hihat = new HiHat(context);
-  cymbal = new Cymbal(context);
-  snare = new Snare(context);
+	BassDrum  = new Kick(context);
+  SnareDrum = new Snare(context);
+  HiHat = new HiHat(context);
+  Cymbal = new Cymbal(context);
+  HandClap = new Clap(context);
 
-  hihat.setup();
-  clap.setup();
-  cymbal.setup();
-  snare.setup();
-  kick.setup();
+  BassDrum.setup();
+  SnareDrum.setup();
+  HiHat.setup();
+  Cymbal.setup();
+  HandClap.setup();
 
 });
 

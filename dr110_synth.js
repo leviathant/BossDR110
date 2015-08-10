@@ -147,6 +147,16 @@ HiHat.prototype.shortToGround = function(){
   this.amp.gain.value = 0.2;
 };
 
+ClosedHihat = function(){};
+ClosedHihat.trigger = function(time){
+  HiHat.trigger(time,'ClosedHihat');
+};
+
+OpenHihat = function(){};
+OpenHihat.trigger = function(time){
+  HiHat.trigger(time,'OpenHihat');
+}
+
 HiHat.prototype.trigger = function(time, type){
   switch(type){
     case "OpenHihat":
@@ -417,31 +427,31 @@ var sequence_to_tone = function(seq) {
   }
 
   Tone.Note.route("BD", function(time){
-    kick.trigger(time);
+    BassDrum.trigger(time);
   });
 
   Tone.Note.route("OH", function(time){
-    hihat.trigger(time, "OpenHihat");
+    HiHat.trigger(time, "OpenHihat");
   });
 
   Tone.Note.route("CH", function(time){
-    hihat.trigger(time,"ClosedHihat");
+    HiHat.trigger(time,"ClosedHihat");
   });
 
   Tone.Note.route("PH", function(time){
-    hihat.trigger(time, "pedaled");
+    HiHat.trigger(time, "pedaled");
   });
 
   Tone.Note.route("CP", function(time){
-    clap.trigger(time);
+    HandClap.trigger(time);
   });
 
   Tone.Note.route("CY", function(time){
-    cymbal.trigger(time);
+    Cymbal.trigger(time);
   });
 
   Tone.Note.route("SD", function(time){
-    snare.trigger(time);
+    SnareDrum.trigger(time);
   });
 
   Tone.Note.parseScore(Score);
