@@ -631,5 +631,6 @@ $(document).ready(function(){
   Cymbal.setup();
   HandClap.setup();
 
+	initializeCanvas();
 });
 

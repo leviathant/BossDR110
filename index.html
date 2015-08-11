@@ -7,11 +7,13 @@
 	<title>Emulating a Boss DR-110</title>
 	<script src="jquery.js" type="text/javascript"></script>
 	<script src="Tone.min.js"></script>
+
 	<script src="dr110_synth.js"></script>
 	<script src="dr110.js"></script>
 
 </head>
 <body>
+	<canvas id="myCanvas"></canvas>
 	<div id="container">
 	<p>Tempo:<span id="tempo"> 120bpm</span>, Volume:<span id="volume">80</span>, Accent:<span id="accent">20</span> - <a href="http://www.theninhotline.net/dr110">Programming Instructions</a> - <a href="README.md">Notes</a></p>
 		<div id="device">
@@ -80,5 +82,6 @@
 	<br style="clear: Both;" />
 	<div style="text-align: center;">
 	Boss DR-110 Simulator</span> by <a href="http://www.bitrotten.com/">Matt Dunphy</a> is licensed under a <a rel="license" href="http://opensource.org/licenses/MIT">The MIT License (MIT)</a>.<br />Based on a work at <a href="http://www.bitrotten.com/dr110">www.bitrotten.com</a>.</div>
+	<script src="dr110_canvas.js"></script>
 	</body>
 </html>
