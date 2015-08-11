@@ -147,6 +147,8 @@ HiHat.prototype.shortToGround = function(){
   this.amp.gain.value = 0.2;
 };
 
+//TODO: The following ten lines are cheap and ugly and should be done better.
+
 ClosedHihat = function(){};
 ClosedHihat.trigger = function(time){
   HiHat.trigger(time,'ClosedHihat');
@@ -155,7 +157,7 @@ ClosedHihat.trigger = function(time){
 OpenHihat = function(){};
 OpenHihat.trigger = function(time){
   HiHat.trigger(time,'OpenHihat');
-}
+};
 
 HiHat.prototype.trigger = function(time, type){
   switch(type){
@@ -366,24 +368,35 @@ function Snare(context) {
 Snare.prototype.setup = function() {
   this.osc = this.context.createOscillator(); // Initialize noise source
   this.amp = this.context.createGain();      // Initialize amplifier
-  this.osc.connect(this.amp);                // Route noise source to amp
-  //this.amp.connect(this.context.destination);// Connect amp to output
+  this.osc.connect(this.amp);
 
   this.noise = this.context.createBufferSource();   // Allocate sample space,
   this.noise.buffer = whiteNoise();                 // sample some noise,
   this.noise.loop = true;                           // loop the noise sample,
-  this.noise.connect(this.amp);                // and route the audio to CA
+  //this.noise.connect(this.amp);                // and route the audio to CA
   this.noise.start();
 
   this.hiPass = this.context.createBiquadFilter();
   this.hiPass.type = "highpass";
-  this.hiPass.frequency.value = 200;
+  this.hiPass.frequency.value = 800;
   this.hiPass.gain.value = 6;
   this.hiPass.Q.value = 0;
 
-  this.amp.connect(this.hiPass);
+  this.noise.connect(this.hiPass);
 
-  this.hiPass.connect(this.context.destination);
+  //this.hiPass.connect(this.context.destination);
+  this.amp.connect(this.context.destination);
+  this.hiPass.connect(this.amp);
+
+  this.lfoAmount = this.context.createGain();
+  this.lfo = this.context.createOscillator();
+  this.lfo.type = "triangle";
+  this.lfo.frequency.value = 3;
+  this.lfoAmount.gain.value = 200;
+
+  this.lfo.connect(this.lfoAmount);
+  this.lfoAmount.connect(this.hiPass.frequency);
+  this.lfo.start();
 
   this.amp.gain.value = 0.0;                     // and turn CA level up.
 };
@@ -391,14 +404,18 @@ Snare.prototype.setup = function() {
 Snare.prototype.trigger = function(time){
   this.setup();
 
-  this.osc.frequency.setValueAtTime(150, time);  // Set osc freq
+  this.osc.frequency.setValueAtTime(650, time);  // Set osc freq
   this.amp.gain.setValueAtTime(1 * (volume * (1 + accent)), time);        // Set osc volume
 
-  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + kickDecay);
+  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + snareDecay);
   this.amp.gain.exponentialRampToValueAtTime(mute, time + kickDecay);
 
   this.osc.start(time);
   this.osc.stop(time + 0.5);
+};
+
+Snare.prototype.shortToGround = function(context){
+  this.amp.gain.value = 0.2;
 };
 
 var sequence_to_tone = function(seq) {

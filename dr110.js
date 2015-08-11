@@ -24,7 +24,6 @@ var knobMax = 88;
 var volume = 0.8; /* 0-1 */
 var accent = 0.2; /* 0-1 */
 
-
 var selected_instrument = 1;
 
 var bank = 0;
