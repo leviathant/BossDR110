@@ -22,7 +22,7 @@ initializeCanvas = function(){
 		10 * pixelSize,
 		canvasContext,
 		"#000000",
-		1 * pixelSize,
+		2 * pixelSize,
 		'#B8B8BA'
 	);
 
@@ -49,8 +49,79 @@ initializeCanvas = function(){
 		canvasContext,
 		"#000000",
 		1 * pixelSize,
-		'#909844'
+		'#A0A854'
 	);
+
+	// Note grid container
+	roundedRectangle(
+		35 * pixelSize,
+		42 * pixelSize,
+		150 * pixelSize,
+		35 * pixelSize,
+		3 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'none'
+	);
+	canvasContext.beginPath();
+	canvasContext.moveTo(65 * pixelSize,  42 * pixelSize);
+  canvasContext.lineTo(65 * pixelSize,  77 * pixelSize);
+  canvasContext.stroke();
+
+	// Mode indicator container
+	roundedRectangle(
+		135 * pixelSize,
+		80 * pixelSize,
+		50 * pixelSize,
+		28 * pixelSize,
+		3 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'none'
+	);
+	canvasContext.beginPath();
+	canvasContext.moveTo(148 * pixelSize,  80 * pixelSize);
+  canvasContext.lineTo(148 * pixelSize,  108 * pixelSize);
+  canvasContext.stroke();
+
+	// Song/Measure container
+	roundedRectangle(
+		35 * pixelSize,
+		80 * pixelSize,
+		62 * pixelSize,
+		28 * pixelSize,
+		3 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'none'
+	);
+
+	canvasContext.beginPath();
+	canvasContext.moveTo(47 * pixelSize,  80 * pixelSize);
+  canvasContext.lineTo(47 * pixelSize,  108 * pixelSize);
+  canvasContext.stroke();
+
+	// Bank/Rythm Container
+	roundedRectangle(
+		100 * pixelSize,
+		80 * pixelSize,
+		32 * pixelSize,
+		28 * pixelSize,
+		3 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'none'
+	);
+
+	canvasContext.beginPath();
+	canvasContext.moveTo(113 * pixelSize,  80 * pixelSize);
+  canvasContext.lineTo(113 * pixelSize,  108 * pixelSize);
+  canvasContext.stroke();
+
 
   // Accent lines
   accentLine(101);
@@ -60,10 +131,10 @@ initializeCanvas = function(){
   accentLine(129);
 
   //
-	knob(30,555);
+	knob(30,562);
 	knob(60,655);
-	knob(0,755);
-	knob(110,855);
+	knob(0,752);
+	knob(110,850);
 
 	console.log('so far so good');
 
@@ -72,7 +143,7 @@ initializeCanvas = function(){
 accentLine = function(height){
 	canvasContext.lineWidth = 3 * pixelSize;
   canvasContext.beginPath();
-  canvasContext.moveTo( 225 * pixelSize,  height * pixelSize);
+  canvasContext.moveTo(225.5 * pixelSize,  height * pixelSize);
   canvasContext.lineTo(bossWidth - 1 * pixelSize, height * pixelSize);
   canvasContext.strokeStyle = '#909090';
   canvasContext.stroke();
@@ -152,11 +223,17 @@ roundedRectangle = function(x,y,w,h,radius,subCanvas,lineColor,lineSize,fillColo
 	subCanvas.lineTo(x,y+radius);
 	subCanvas.quadraticCurveTo(x,y,x+radius,y);
 	subCanvas.stroke();
-	subCanvas.fillStyle = fillColor;
-  subCanvas.fill();
+	if(fillColor != "none"){
+		subCanvas.fillStyle = fillColor;
+		subCanvas.fill();
+  }
 };
 
-topRightRoundRect = function(x,y,w,h,radius,subCanvas,lineColor,lineSize,fillColor){
+topRightRoundRect = function(
+	x,y,w,h,
+	radius,subCanvas,
+	lineColor,lineSize,
+	fillColor){
 	var r = x + w;
 	var b = y + h;
 	subCanvas.beginPath();
