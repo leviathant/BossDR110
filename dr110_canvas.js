@@ -5,7 +5,7 @@ var radius = 25 * sizeMultiplier;
 pixelSize = 2 * sizeMultiplier;
 
 initializeCanvas = function(){
-	bossWidth = 900 * sizeMultiplier;
+  bossWidth = 900 * sizeMultiplier;
   bossHeight = 515 * sizeMultiplier;
 
   canvas.height = bossHeight;
@@ -15,111 +15,148 @@ initializeCanvas = function(){
 
   // BODY
   roundedRectangle(
-		pixelSize,
-		5 * pixelSize,
-		448 * pixelSize,
-		250 * pixelSize,
-		10 * pixelSize,
-		canvasContext,
-		"#000000",
-		2 * pixelSize,
-		'#B8B8BA'
-	);
+    pixelSize,
+    5 * pixelSize,
+    448 * pixelSize,
+    250 * pixelSize,
+    10 * pixelSize,
+    canvasContext,
+    "#000000",
+    2 * pixelSize,
+    '#a8adb0'
+  );
 
   // Black screen border
   topRightRoundRect(
-		pixelSize,
-		5 * pixelSize,
-		224 * pixelSize,
-		125 * pixelSize,
-		10 * pixelSize,
-		canvasContext,
-		"#000000",
-		1 * pixelSize,
-		'#000000'
+    pixelSize,
+    5 * pixelSize,
+    224 * pixelSize,
+    125 * pixelSize,
+    10 * pixelSize,
+    canvasContext,
+    "#000000",
+    1 * pixelSize,
+    '#000000'
   );
 
   // Green screen
-	roundedRectangle(
-		30 * pixelSize,
-		25 * pixelSize,
-		160 * pixelSize,
-		85 * pixelSize,
-		8 * pixelSize,
-		canvasContext,
-		"#000000",
-		1 * pixelSize,
-		'#A0A854'
-	);
+  roundedRectangle(
+    30 * pixelSize,
+    25 * pixelSize,
+    160 * pixelSize,
+    85 * pixelSize,
+    8 * pixelSize,
+    canvasContext,
+    "#000000",
+    1 * pixelSize,
+    '#818761'
+  );
 
-	// Note grid container
-	roundedRectangle(
-		35 * pixelSize,
-		42 * pixelSize,
-		150 * pixelSize,
-		35 * pixelSize,
-		3 * pixelSize,
-		canvasContext,
-		"#000000",
-		1 * pixelSize,
-		'none'
-	);
-	canvasContext.beginPath();
-	canvasContext.moveTo(65 * pixelSize,  42 * pixelSize);
+  // Note grid container
+  roundedRectangle(
+    35 * pixelSize,
+    42 * pixelSize,
+    150 * pixelSize,
+    35 * pixelSize,
+    3 * pixelSize,
+    canvasContext,
+    "#000000",
+    1 * pixelSize,
+    'none'
+  );
+
+  //v
+  canvasContext.beginPath();
+  canvasContext.moveTo(65 * pixelSize,  42 * pixelSize);
   canvasContext.lineTo(65 * pixelSize,  77 * pixelSize);
   canvasContext.stroke();
 
-	// Mode indicator container
-	roundedRectangle(
-		135 * pixelSize,
-		80 * pixelSize,
-		50 * pixelSize,
-		28 * pixelSize,
-		3 * pixelSize,
-		canvasContext,
-		"#000000",
-		1 * pixelSize,
-		'none'
-	);
-	canvasContext.beginPath();
-	canvasContext.moveTo(148 * pixelSize,  80 * pixelSize);
+  canvasContext.lineWidth = 0.5 * pixelSize;
+  for( i = 0; i<=4; i++){
+    canvasContext.beginPath();
+    canvasContext.moveTo(35 * pixelSize,  (49 + (i * 7)) * pixelSize);
+    canvasContext.lineTo(65 * pixelSize,  (49 + (i * 7)) * pixelSize);
+    canvasContext.stroke();
+  }
+
+  for( i = 1; i <= 5; i++){
+    canvasContext.beginPath();
+    canvasContext.moveTo(65 * pixelSize,  (38.5 + (i * 7)) * pixelSize);
+    canvasContext.lineTo(185 * pixelSize, (38.5 + (i * 7)) * pixelSize);
+    canvasContext.stroke();
+  }
+
+  for ( i = 1; i <= 16; i++) {
+    canvasContext.beginPath();
+    canvasContext.moveTo((61.5 + (i * 7.5)) * pixelSize,  42 * pixelSize);
+    canvasContext.lineTo((61.5 + (i * 7.5)) * pixelSize,  77 * pixelSize);
+    canvasContext.stroke();
+  }
+
+  canvasContext.lineWidth = pixelSize;
+
+  // Mode indicator container
+  roundedRectangle(
+    135 * pixelSize,
+    80 * pixelSize,
+    50 * pixelSize,
+    28 * pixelSize,
+    3 * pixelSize,
+    canvasContext,
+    "#000000",
+    1 * pixelSize,
+    'none'
+  );
+  canvasContext.beginPath();
+  canvasContext.moveTo(148 * pixelSize,  80 * pixelSize);
   canvasContext.lineTo(148 * pixelSize,  108 * pixelSize);
   canvasContext.stroke();
 
-	// Song/Measure container
-	roundedRectangle(
-		35 * pixelSize,
-		80 * pixelSize,
-		62 * pixelSize,
-		28 * pixelSize,
-		3 * pixelSize,
-		canvasContext,
-		"#000000",
-		1 * pixelSize,
-		'none'
-	);
+  // Song/Measure container
+  roundedRectangle(
+    35 * pixelSize,
+    80 * pixelSize,
+    62 * pixelSize,
+    28 * pixelSize,
+    3 * pixelSize,
+    canvasContext,
+    "#000000",
+    1 * pixelSize,
+    'none'
+  );
 
-	canvasContext.beginPath();
-	canvasContext.moveTo(47 * pixelSize,  80 * pixelSize);
+  canvasContext.beginPath();
+  canvasContext.moveTo(47 * pixelSize,  80 * pixelSize);
   canvasContext.lineTo(47 * pixelSize,  108 * pixelSize);
   canvasContext.stroke();
 
-	// Bank/Rythm Container
-	roundedRectangle(
-		100 * pixelSize,
-		80 * pixelSize,
-		32 * pixelSize,
-		28 * pixelSize,
-		3 * pixelSize,
-		canvasContext,
-		"#000000",
-		1 * pixelSize,
-		'none'
-	);
+  canvasContext.beginPath();
+  canvasContext.moveTo(35 * pixelSize,  85 * pixelSize);
+  canvasContext.lineTo(97 * pixelSize,  85 * pixelSize);
+  canvasContext.stroke();
 
-	canvasContext.beginPath();
-	canvasContext.moveTo(113 * pixelSize,  80 * pixelSize);
+
+  // Bank/Rythm Container
+  roundedRectangle(
+    100 * pixelSize,
+    80 * pixelSize,
+    32 * pixelSize,
+    28 * pixelSize,
+    3 * pixelSize,
+    canvasContext,
+    "#000000",
+    1 * pixelSize,
+    'none'
+  );
+
+  canvasContext.beginPath();
+  canvasContext.moveTo(113 * pixelSize,  80 * pixelSize);
   canvasContext.lineTo(113 * pixelSize,  108 * pixelSize);
+  canvasContext.stroke();
+
+  canvasContext.beginPath();
+  canvasContext.moveTo(100 * pixelSize,  85 * pixelSize);
+  canvasContext.lineTo(132 * pixelSize,  85 * pixelSize);
   canvasContext.stroke();
 
 
@@ -131,17 +168,17 @@ initializeCanvas = function(){
   accentLine(129);
 
   //
-	knob(30,562);
-	knob(60,655);
-	knob(0,752);
-	knob(110,850);
+  knob(30,562);
+  knob(60,655);
+  knob(0,752);
+  knob(110,850);
 
-	console.log('so far so good');
+  console.log('so far so good');
 
 };
 
 accentLine = function(height){
-	canvasContext.lineWidth = 3 * pixelSize;
+  canvasContext.lineWidth = 3 * pixelSize;
   canvasContext.beginPath();
   canvasContext.moveTo(225.5 * pixelSize,  height * pixelSize);
   canvasContext.lineTo(bossWidth - 1 * pixelSize, height * pixelSize);
@@ -151,7 +188,7 @@ accentLine = function(height){
 };
 
 knob = function(value, position){
-	knobCanvas = document.createElement('canvas');
+  knobCanvas = document.createElement('canvas');
   knobCanvas.height =  2 * (2 * radius);
   knobCanvas.width = 2 * (2 * radius);
   knobContext = knobCanvas.getContext('2d');
@@ -180,10 +217,10 @@ knob = function(value, position){
   centerY = centerY  * sizeMultiplier;
 
   canvasContext.drawImage(
-		knobCanvas,
-		centerX - radius - pixelSize,
-		centerY - 2 * radius / 2 - pixelSize
-	);
+    knobCanvas,
+    centerX - radius - pixelSize,
+    centerY - 2 * radius / 2 - pixelSize
+  );
 };
 
 tweakKnob = function(x, y, width, height, degrees, kc) {
@@ -208,45 +245,45 @@ tweakKnob = function(x, y, width, height, degrees, kc) {
 };
 
 roundedRectangle = function(x,y,w,h,radius,subCanvas,lineColor,lineSize,fillColor){
-	var r = x + w;
-	var b = y + h;
-	subCanvas.beginPath();
-	subCanvas.strokeStyle=lineColor;
-	subCanvas.lineWidth=lineSize;
-	subCanvas.moveTo(x+radius, y);
-	subCanvas.lineTo(r-radius,y);
-	subCanvas.quadraticCurveTo(r,y,r,y+radius);
-	subCanvas.lineTo(r,y+h-radius);
-	subCanvas.quadraticCurveTo(r,b,r-radius,b);
-	subCanvas.lineTo(x+radius, b);
-	subCanvas.quadraticCurveTo(x,b,x,b-radius);
-	subCanvas.lineTo(x,y+radius);
-	subCanvas.quadraticCurveTo(x,y,x+radius,y);
-	subCanvas.stroke();
-	if(fillColor != "none"){
-		subCanvas.fillStyle = fillColor;
-		subCanvas.fill();
+  var r = x + w;
+  var b = y + h;
+  subCanvas.beginPath();
+  subCanvas.strokeStyle=lineColor;
+  subCanvas.lineWidth=lineSize;
+  subCanvas.moveTo(x+radius, y);
+  subCanvas.lineTo(r-radius,y);
+  subCanvas.quadraticCurveTo(r,y,r,y+radius);
+  subCanvas.lineTo(r,y+h-radius);
+  subCanvas.quadraticCurveTo(r,b,r-radius,b);
+  subCanvas.lineTo(x+radius, b);
+  subCanvas.quadraticCurveTo(x,b,x,b-radius);
+  subCanvas.lineTo(x,y+radius);
+  subCanvas.quadraticCurveTo(x,y,x+radius,y);
+  subCanvas.stroke();
+  if(fillColor != "none"){
+    subCanvas.fillStyle = fillColor;
+    subCanvas.fill();
   }
 };
 
 topRightRoundRect = function(
-	x,y,w,h,
-	radius,subCanvas,
-	lineColor,lineSize,
-	fillColor){
-	var r = x + w;
-	var b = y + h;
-	subCanvas.beginPath();
-	subCanvas.strokeStyle=lineColor;
-	subCanvas.lineWidth=lineSize;
-	subCanvas.moveTo(x+radius, y);
-	subCanvas.lineTo(r,y);
-	subCanvas.lineTo(r,y+h);
-	subCanvas.lineTo(x, b);
-	subCanvas.lineTo(x,y+radius);
-	subCanvas.quadraticCurveTo(x,y,x+radius,y);
-	subCanvas.stroke();
-	subCanvas.fillStyle = fillColor;
+  x,y,w,h,
+  radius,subCanvas,
+  lineColor,lineSize,
+  fillColor){
+  var r = x + w;
+  var b = y + h;
+  subCanvas.beginPath();
+  subCanvas.strokeStyle=lineColor;
+  subCanvas.lineWidth=lineSize;
+  subCanvas.moveTo(x+radius, y);
+  subCanvas.lineTo(r,y);
+  subCanvas.lineTo(r,y+h);
+  subCanvas.lineTo(x, b);
+  subCanvas.lineTo(x,y+radius);
+  subCanvas.quadraticCurveTo(x,y,x+radius,y);
+  subCanvas.stroke();
+  subCanvas.fillStyle = fillColor;
   subCanvas.fill();
 };
 
