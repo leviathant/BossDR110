@@ -1,10 +1,8 @@
-// {
-  var canvas = document.getElementById('myCanvas');
-  var canvasContext = canvas.getContext('2d');
-  var sizeMultiplier = 1;
-  var radius = 20 * sizeMultiplier;
-  pixelSize = 2 * sizeMultiplier;
-// }
+var canvas = document.getElementById('myCanvas');
+var canvasContext = canvas.getContext('2d');
+var sizeMultiplier = 1;
+var radius = 25 * sizeMultiplier;
+pixelSize = 2 * sizeMultiplier;
 
 initializeCanvas = function(){
 	bossWidth = 900 * sizeMultiplier;
@@ -13,29 +11,46 @@ initializeCanvas = function(){
   canvas.height = bossHeight;
   canvas.width = bossWidth;
 
-
   canvasContext.lineWidth = pixelSize;
 
-
   // BODY
-  canvasContext.beginPath();
-  canvasContext.rect(pixelSize, 5 * pixelSize, bossWidth - (2 * pixelSize), bossHeight - (6* pixelSize));
-  canvasContext.fillStyle = '#B8B8BA';
-  canvasContext.fill();
-  canvasContext.strokeStyle = '#000000';
-  canvasContext.stroke();
+  roundedRectangle(
+		pixelSize,
+		5 * pixelSize,
+		448 * pixelSize,
+		250 * pixelSize,
+		10 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'#B8B8BA'
+	);
 
   // Black screen border
-  canvasContext.beginPath();
-  canvasContext.rect(pixelSize, 5 * pixelSize, (bossWidth - (2 * pixelSize)) / 2, (bossHeight - (6* pixelSize)) /2  );
-  canvasContext.fillStyle = '#000000';
-  canvasContext.fill();
+  topRightRoundRect(
+		pixelSize,
+		5 * pixelSize,
+		224 * pixelSize,
+		125 * pixelSize,
+		10 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'#000000'
+  );
 
   // Green screen
-	canvasContext.beginPath();
-  canvasContext.rect(20 * pixelSize, 25 * pixelSize, (bossWidth - (2 * pixelSize)) / 2 - 50 * pixelSize, (bossHeight - (6* pixelSize)) /2 -40 * pixelSize );
-  canvasContext.fillStyle = '#909844';
-  canvasContext.fill();
+	roundedRectangle(
+		30 * pixelSize,
+		25 * pixelSize,
+		160 * pixelSize,
+		85 * pixelSize,
+		8 * pixelSize,
+		canvasContext,
+		"#000000",
+		1 * pixelSize,
+		'#909844'
+	);
 
   // Accent lines
   accentLine(101);
@@ -44,12 +59,11 @@ initializeCanvas = function(){
   accentLine(122);
   accentLine(129);
 
-  // canvasContext.lineWidth = 4 * pixelSize;
-  // canvasContext.beginPath();
-  // canvasContext.moveTo( 225 * pixelSize,  100 * pixelSize);
-  // canvasContext.lineTo(bossWidth - 1 * pixelSize, 100 * pixelSize);
-  // canvasContext.strokeStyle = '#707070';
-  // canvasContext.stroke();
+  //
+	knob(30,555);
+	knob(60,655);
+	knob(0,755);
+	knob(110,855);
 
 	console.log('so far so good');
 
@@ -94,7 +108,11 @@ knob = function(value, position){
   centerX = centerX * sizeMultiplier;
   centerY = centerY  * sizeMultiplier;
 
-  canvasContext.drawImage(knobCanvas, centerX -  radius - pixelSize, centerY -2 * radius /2 - pixelSize );
+  canvasContext.drawImage(
+		knobCanvas,
+		centerX - radius - pixelSize,
+		centerY - 2 * radius / 2 - pixelSize
+	);
 };
 
 tweakKnob = function(x, y, width, height, degrees, kc) {
@@ -109,11 +127,50 @@ tweakKnob = function(x, y, width, height, degrees, kc) {
   kc.arc(centerX - 2 * radius, centerY - 2 * radius, radius, 0, 360, false);
   kc.fillStyle = '#000000';
   kc.fill();
-  kc.strokeStyle = '#00FFFF';
   kc.stroke();
   kc.beginPath();
   kc.moveTo(centerX - 2 * radius,centerY - 2 * radius);
+  kc.strokeStyle = '#FF8800';
+  kc.lineWidth = 2 * pixelSize;
   kc.lineTo(centerX - 2 * radius, centerY - 2 * radius + radius);
   kc.stroke();
 };
+
+roundedRectangle = function(x,y,w,h,radius,subCanvas,lineColor,lineSize,fillColor){
+	var r = x + w;
+	var b = y + h;
+	subCanvas.beginPath();
+	subCanvas.strokeStyle=lineColor;
+	subCanvas.lineWidth=lineSize;
+	subCanvas.moveTo(x+radius, y);
+	subCanvas.lineTo(r-radius,y);
+	subCanvas.quadraticCurveTo(r,y,r,y+radius);
+	subCanvas.lineTo(r,y+h-radius);
+	subCanvas.quadraticCurveTo(r,b,r-radius,b);
+	subCanvas.lineTo(x+radius, b);
+	subCanvas.quadraticCurveTo(x,b,x,b-radius);
+	subCanvas.lineTo(x,y+radius);
+	subCanvas.quadraticCurveTo(x,y,x+radius,y);
+	subCanvas.stroke();
+	subCanvas.fillStyle = fillColor;
+  subCanvas.fill();
+};
+
+topRightRoundRect = function(x,y,w,h,radius,subCanvas,lineColor,lineSize,fillColor){
+	var r = x + w;
+	var b = y + h;
+	subCanvas.beginPath();
+	subCanvas.strokeStyle=lineColor;
+	subCanvas.lineWidth=lineSize;
+	subCanvas.moveTo(x+radius, y);
+	subCanvas.lineTo(r,y);
+	subCanvas.lineTo(r,y+h);
+	subCanvas.lineTo(x, b);
+	subCanvas.lineTo(x,y+radius);
+	subCanvas.quadraticCurveTo(x,y,x+radius,y);
+	subCanvas.stroke();
+	subCanvas.fillStyle = fillColor;
+  subCanvas.fill();
+};
+
 
