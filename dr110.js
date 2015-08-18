@@ -346,9 +346,9 @@ send_trigger = function(){
 	eval(instruments[selected_instrument]).trigger(context.currentTime);
 };
 
-send_trigger = function(){
-	playFile(instruments[selected_instrument], false);
-};
+// send_trigger = function(){
+// 	playFile(instruments[selected_instrument], false);
+// };
 
 
 $(document).ready(function(){

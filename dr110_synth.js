@@ -168,10 +168,9 @@ HiHat.prototype.trigger = function(time, type){
       this.duration = 0.3;
     break;
     case "PedalHat":
-      this.duration = 0.2;
+      this.duration = 0.8;
     break;
   }
-
   this.amp.gain.setValueAtTime(0.5 * (volume * (1 + accent)), time);
   this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
 };
@@ -442,6 +441,11 @@ var sequence_to_tone = function(seq) {
             Score[key].push(sixteenths[i-1]);
           }
         }
+        else if(key == "OH"){
+          if(seq[key][i]==1 && seq["CH"][i] != 1){
+            Score[key].push(sixteenths[i-1]);
+          }
+        }
         else{
           if(seq[key][i]==1){
             Score[key].push(sixteenths[i-1]);
@@ -464,7 +468,7 @@ var sequence_to_tone = function(seq) {
   });
 
   Tone.Note.route("PH", function(time){
-    HiHat.trigger(time, "pedaled");
+    HiHat.trigger(time, "PedalHat");
   });
 
   Tone.Note.route("CP", function(time){
