@@ -286,15 +286,16 @@ nextStep = function(){
 
 createKnob = function(knobType){
 	$("#" + knobType + "Control").mousedown( function( eventObj ) {
+		eventObj.preventDefault();
 		clicking = true;
 		$("#" + knobType + "Control").height("300px");
 		$("#" + knobType + "Control").css("top",$("#knob" + knobType.capitalize()).offset().top - 190 + "px");
 	});
 	$("#" + knobType + "Control").mouseup(function( eventObj ) {
+		eventObj.preventDefault();
 		clicking = false;
 		$("#" + knobType + "Control").height("60px");
-		$("#" + knobType + "Control").css("top",$("#knob" + knobType.capitalize()).offset().top - 83 + "px");
-		$("#device").focus(); //Trying to fix knob drag issue.
+		$("#" + knobType + "Control").css('top',$("#knob" + knobType.capitalize()).offset().top - 83 + "px");
 	});
 };
 
