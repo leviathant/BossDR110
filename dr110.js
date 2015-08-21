@@ -335,21 +335,28 @@ resetStep = function(){
 	step = 1;
 };
 
-resetSequence = function(){
+resetSequence = function(inst){
 	//TODO: Is active_sequence redundant? e.g.
 	//sequences[banks[active_bank]][active_pattern_number][step] = 1;
-	active_sequence[circuits[selected_instrument]][step] = 1;
-	sequences[banks[active_bank]][active_pattern_number] = active_sequence;
+
+  //If we're in Step mode...
+  if(inst !== undefined){
+    var currentNote = Tone.Transport.toTransportTime(context.currentTime,tempo).split(":");
+    var scoreValue = "0:" + currentNote[1] + ":" + currentNote[2];
+    var sixteenth = 1 + ( parseInt(currentNote[1],10) * 4 ) + parseInt(currentNote[2],10);
+    console.log(inst + " @ " + scoreValue + " " + sixteenth);
+    //active_sequence[inst][sixteenth] = 1;
+    //sequences[banks[active_bank]][active_pattern_number] = active_sequence;
+	}
+  else{
+    active_sequence[circuits[selected_instrument]][step] = 1;
+    sequences[banks[active_bank]][active_pattern_number] = active_sequence;
+  }
 };
 
 send_trigger = function(){
 	eval(instruments[selected_instrument]).trigger(context.currentTime);
 };
-
-// send_trigger = function(){
-// 	playFile(instruments[selected_instrument], false);
-// };
-
 
 $(document).ready(function(){
 	document.onkeydown = handle_keydown;
@@ -506,7 +513,7 @@ $(document).ready(function(){
 			if(selected_mode > 3){
 				send_trigger();
 				if(selected_mode == 5){
-					resetSequence(); //(step==1)?16:step-1 to account for lag?
+					resetSequence("BD"); //(step==1)?16:step-1 to account for lag?
 				}
 				else{
 					resetStep();
@@ -527,7 +534,7 @@ $(document).ready(function(){
 			sharedDisplayInstrument = selected_instrument;
 			if(selected_mode > 3){
 				if(selected_mode == 5){
-					resetSequence();
+					resetSequence("AC");
 				}
 				else{
 					resetStep();
@@ -541,7 +548,7 @@ $(document).ready(function(){
 			if(selected_mode > 3){
 				send_trigger();
 				if(selected_mode == 5){
-					resetSequence();
+					resetSequence("SD");
 				}
 				else{
 					resetStep();
@@ -562,7 +569,7 @@ $(document).ready(function(){
 			if(selected_mode > 3){
 				send_trigger();
 				if(selected_mode == 5){
-					resetSequence();
+					resetSequence("OH");
 				}
 				else{
 					resetStep();
@@ -579,7 +586,7 @@ $(document).ready(function(){
 			if(selected_mode > 3){
 				send_trigger();
 				if(selected_mode == 5){
-					resetSequence();
+					resetSequence("CH");
 				}
 				else{
 					resetStep();
@@ -597,7 +604,7 @@ $(document).ready(function(){
 			if(selected_mode > 3){
 				send_trigger();
 				if(selected_mode == 5){
-					resetSequence();
+					resetSequence("CY");
 				}
 				else{
 					resetStep();
@@ -611,7 +618,7 @@ $(document).ready(function(){
 			if(selected_mode > 3){
 				send_trigger();
 				if(selected_mode == 5){
-					resetSequence();
+					resetSequence("CP");
 				}
 				else{
 					resetStep();

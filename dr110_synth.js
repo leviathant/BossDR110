@@ -160,6 +160,13 @@ OpenHihat.trigger = function(time){
 };
 
 HiHat.prototype.trigger = function(time, type){
+  // var now = context.currentTime;
+  // initial = initial || 0;
+  // ampMod.gain.cancelScheduledValues(now);
+  // ampMod.gain.setValueAtTime(initial, now);
+  // ampMod.gain.linearRampToValueAtTime(maxLevel, now + envelopeOffset);
+
+
   switch(type){
     case "OpenHihat":
       this.duration = 1.7;
@@ -171,7 +178,10 @@ HiHat.prototype.trigger = function(time, type){
       this.duration = 0.8;
     break;
   }
+  this.amp.gain.cancelScheduledValues(time); // Nothing?
+  // this.amp.gain.exponentialRampToValueAtTime(0.5 * (volume * (1 + accent)), time);
   this.amp.gain.setValueAtTime(0.5 * (volume * (1 + accent)), time);
+
   this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
 };
 
@@ -323,13 +333,14 @@ Clap.prototype.shortToGround = function(){
 };
 
 Clap.prototype.trigger = function(time){
+  this.amp.gain.cancelScheduledValues(time);
 
   for(trigger = 0; trigger < 3; trigger++){
     this.amp.gain.setValueAtTime(5 * (volume * (1 + accent)), time + (trigger * clapTriggerTime));
     this.amp.gain.exponentialRampToValueAtTime(
       mute,
       time + ((trigger + 1) * clapTriggerTime)
-      );
+    );
   }
 
   this.amp.gain.setValueAtTime(1 * (volume * (1 + accent)), time + (3*clapTriggerTime));
@@ -431,7 +442,7 @@ var sequence_to_tone = function(seq) {
   for(i=1; i<=seq.pattern_length; i++){
 
     for (var key in seq){
-
+      //TODO: Add score tracks for accented hits.
       if(key.length == 2){
         if(key == "CH"){
           if(seq[key][i]==1 && seq["OH"][i] == 1){
