@@ -52,7 +52,7 @@ startBeat = function(){
 	clearTimeout(DR110HEART);
 	DR110HEART = "";
 	resetStep();
-	sequence_to_tone(sequences.A[1]);
+	sequence_to_tone(sequences[banks[bank]][active_pattern_number]);
 };
 
 stopBeat = function(){
@@ -344,9 +344,11 @@ resetSequence = function(inst){
     var currentNote = Tone.Transport.toTransportTime(context.currentTime,tempo).split(":");
     var scoreValue = "0:" + currentNote[1] + ":" + currentNote[2];
     var sixteenth = 1 + ( parseInt(currentNote[1],10) * 4 ) + parseInt(currentNote[2],10);
-    console.log(inst + " @ " + scoreValue + " " + sixteenth);
-    //active_sequence[inst][sixteenth] = 1;
-    //sequences[banks[active_bank]][active_pattern_number] = active_sequence;
+    // console.log(inst + " @ " + scoreValue + " " + sixteenth);
+    active_sequence[inst][sixteenth] = 1;
+    sequences[banks[active_bank]][active_pattern_number] = active_sequence;
+    resetStep();
+    sequence_to_tone(sequences[banks[bank]][active_pattern_number]);
 	}
   else{
     active_sequence[circuits[selected_instrument]][step] = 1;

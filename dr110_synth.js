@@ -166,6 +166,7 @@ HiHat.prototype.trigger = function(time, type){
   // ampMod.gain.setValueAtTime(initial, now);
   // ampMod.gain.linearRampToValueAtTime(maxLevel, now + envelopeOffset);
 
+  // Hihat envelopes appear to trigger okay-ish when tempo < 100bpm
 
   switch(type){
     case "OpenHihat":
@@ -181,7 +182,6 @@ HiHat.prototype.trigger = function(time, type){
   this.amp.gain.cancelScheduledValues(time); // Nothing?
   // this.amp.gain.exponentialRampToValueAtTime(0.5 * (volume * (1 + accent)), time);
   this.amp.gain.setValueAtTime(0.5 * (volume * (1 + accent)), time);
-
   this.amp.gain.exponentialRampToValueAtTime(mute, time + this.duration);
 };
 
