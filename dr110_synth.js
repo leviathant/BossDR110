@@ -26,6 +26,7 @@ var kickDecay = 0.5; // 0.1?
 var mute = 0.00001;
 
 hh1 = [880, 1160, 3280, 2250]; //Cymbal frequencies?
+hh1a = [780, 1100, 3280, 2250]; //1100
 hh2 = [870, 1220, 3150, 2150];
 hh3 = [465, 317, 820, 1150];
 
@@ -100,7 +101,7 @@ HiHat.prototype.setup = function(){
   this.noise.buffer = whiteNoise();                 // sample some noise,
   this.noise.loop = true;                           // loop the noise sample,
   this.noise.connect(this.noiseAmp);                // and route the audio to CA
-  this.noiseAmp.gain.value = 1;                     // and turn CA level up.
+  this.noiseAmp.gain.value = 2;                     // and turn CA level up.
   this.noise.start();
 
   /* Generate two oscillators, mix them together, set combined volume */
@@ -108,7 +109,7 @@ HiHat.prototype.setup = function(){
   for(o=0;o<=1;o++){
     this.osc[o] = this.context.createOscillator();
     this.osc[o].type = "square";
-    this.osc[o].frequency.value = hh1[o];
+    this.osc[o].frequency.value = hh1a[o];
     this.osc[o].connect(this.oscillatorSubmix);
     this.osc[o].start();
   }
@@ -117,15 +118,21 @@ HiHat.prototype.setup = function(){
   /* Filter configuration */
   this.hiPass = this.context.createBiquadFilter();
   this.hiPass.type = "highpass";
-  this.hiPass.frequency.value = 7500;
+  this.hiPass.frequency.value = 8000;
   this.hiPass.gain.value = 2;
   this.hiPass.Q.value = 8;
+
+  this.lowPass = this.context.createBiquadFilter();
+  this.lowPass.type = "lowpass";
+  this.lowPass.frequency.value = 8500;
+  this.lowPass.gain.value = 0;
+  this.lowPass.Q.value = 0;
 
   /* A free-running LFO modulates sound independent of tempo */
   this.lfo = this.context.createOscillator();
   this.lfo.type = "triangle";
   this.lfo.frequency.value = 4 ;
-  this.lfoAmount.gain.value = 300;
+  this.lfoAmount.gain.value = 200;
 
   this.lfo.connect(this.lfoAmount);
   this.lfoAmount.connect(this.hiPass.frequency);
@@ -137,7 +144,8 @@ HiHat.prototype.setup = function(){
   this.amp.connect(this.hiPass);
 
   /* Connect the output of the filter to the speakers */
-  this.hiPass.connect(this.context.destination);
+  this.hiPass.connect(this.lowPass);
+  this.lowPass.connect(this.context.destination);
 
   this.amp.gain.value = mute;
   return "hihat";
