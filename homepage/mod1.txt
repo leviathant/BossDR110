@@ -1,0 +1,116 @@
+NOTE:
+
+a DR-110 page:
+
+http://members.aol.com/leviathant/dr110.html
+http://members.aol.com/justanurs/dr110.html
+
+-----------------------------------
+
+From leigh@netspace.org Sun Sep 21 13:10:55 1997
+Date: Sun, 21 Sep 1997 13:09:40 -0400 (EDT)
+From: Leigh Marble <leigh@netspace.org>
+To: analogue heaven mailing list <analogue@hyperreal.org>
+Subject: Boss Dr-110 sync/mod info
+
+
+There was discussion a while back on this list about sync mods for the
+Boss Dr. Rhythm 110.  Someone hinted at the possibility, and at least half
+a dozen people responded with interest.  Nothing else came of it, however
+(as far as I can tell).  So I finally decided to bust open my own box and
+give it a look-see.  <DISCLAIMER> The results here were derived with crude
+equipment and my own intuition.  No guarantee is made to their accuracy or
+safety, either to self or machine. </DISCLAIMER>  OK, now here's the
+scoop:
+
+First, to backtrack to what the Roland DIN Sync standard is, here's a bit
+of a posting from rein0004@frank.mtsu.edu Fri Feb 23 08:12:57 1996:
+------------
+To clarify what has already been posted, the pins are as follows:
+                                pin 2
+                       pin 5             pin 4
+              pin 3                               pin 1
+                                  *
+                               *     *
+                             *         *
+(Excuse the drawing)
+This is looking at the rear view of the connector.  The pins are 
+basically what has been posted:
+
+pin #		tr-808		tr-606/tb-303		cr-1000
+1		start/stop	start/stop		start/stop
+2		ground		ground			ground		
+3		tempo clock	tempo clock		tempo clock	
+4		reset		tap			not used	
+5		fill in		not used		not used
+
+The control voltage is 0 to +5 volts DC.
+------------
+
+OK, so what we're looking for at minimum is a start/stop and a tempo
+clock, which for Roland means 24 ppq (pulses per quarter note).
+
+I'll save you the gory details of my explorations and cut to results.  I
+found what I'm pretty sure is the tempo clock, though I could not count
+the pulses that fast off the voltmeter.  Sure looked like it could be 24
+ppq, but only way to tell is with better equipment or to sync it to
+something else and see if it works.  I also found CV's for the individual
+drum sounds.  I did not isolate the start/stop voltages, but if you dug
+down further I bet the start/stop buttons would be a good place to start
+looking!  Here's where to look:
+
+Open the box by taking off the three screws on the back.  To do any
+tinkering you'll need an ext. power supply, as the battery compartment
+goes with the back cover.  (I've been using the 10V supply from a Sega
+Genesis, but this is really a do-it-at-your-own-risk!)  You'll also have
+to pull of the knobs to open it, but they are slotted to they'll go back
+just the way they came off.  Turn the unit so the top is facing you.  (The
+power switch and DC & trigger jacks will be on the bottom right.)  Now,
+see the white bus wires that run between the two circuit boards?  That's
+where you'll find what you're looking for.  The way the unit is facing
+you, you're looking at the bottom of the board, where the leads from the
+bus stick out.  Now, count carefully, there are 18 wires on that bus.
+(Make sure you start all the way at the left, but start *after* the diode
+lead that's right there).
+
+Still with me?  OK, now numbering the bus wires #1-18, from left-to-right,
+the (suspected) clock pulse is on #4.  To check it, use a voltmeter set to
+a 0 to +5 range.  Ground the negative probe (I used the negative battery
+clip) and touch wire #4, and you should see the needle bob fast.  This
+varies as you turn the tempo knob.
+
+The CV's for the individual instruments are as follows:
+
+wire#	voice
+9	cymbal
+10	o. hat
+11	c. hat
+12	kick	
+13	snare
+15	claps
+16	accent
+
+There are two ways to check these out.  One, do the voltmeter thing while
+running a rhythm pattern.  You will see the voltage is held at +5, and
+when the voice fires, the voltage dips down.  Two, use a plain wire lead,
+ground one end to the -battery clip, and touch the other end to the
+respective bus wire.  This causes the voice to fire off, repeatedly (prob
+at every pulse of the clock).  CAUTION:  I consulted someone more
+knowledgable in electronics after I had done this, and was told that
+grounding out the wires like this *could* cause damage, depending on the
+type of logic circuit used.  An "open collector" style one would be fine,
+while a TTL or "transistor-transistor logic" one might get upset.  Given
+the relatively slow speeds that a rhythm machine must run at, compared to
+CPU's, it's probably the open collector style.  Anyone with more
+electronics experience is welcome to shed light on this, esp. someone who
+also has a coveted schematic for this unit!
+
+OK, that's my findings, it's up to you to take it from here.  There's not
+much room in there to mount a DIN jack, but I'm sure that could be worked
+around.  Good luck,
+	Leigh
+
+___________________
+www.netspace.org/~leigh/
+
+
